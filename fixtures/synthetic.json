@@ -1,0 +1,44 @@
+{
+  "label": "Cedar Works - original invented assembly orders",
+  "orders": [
+    ["WO-1001", "Bench sensor", "Assembly A", 40, "2026-10-02T15:00:00Z"],
+    ["WO-1002", "Bracket kit", "Assembly B", 60, "2026-10-03T14:00:00Z"],
+    ["WO-1003", "Cable module", "Assembly A", 25, "2026-10-05T12:00:00Z"],
+    ["WO-1004", "Bench sensor", "Test bay", 30, "2026-10-06T18:00:00Z"],
+    ["WO-1005", "Mount plate", "Assembly B", 80, "2026-10-07T17:00:00Z"],
+    ["WO-1006", "Cable module", "Assembly A", 20, "2026-10-08T00:00:00Z"],
+    ["WO-1007", "Bracket kit", "Assembly B", 15, "2026-10-01T00:00:00Z"],
+    ["WO-1008", "Mount plate", "Assembly B", 10, "2026-09-30T23:59:59Z"],
+    ["WO-1009", "Bench sensor", "Test bay", 35, null],
+    ["WO-1010", "Cable module", "Assembly A", 45, "2026-10-07T12:00:00Z"],
+    ["WO-1011", "Mount plate", "Test bay", 50, "2026-10-04T12:00:00Z"],
+    ["WO-1012", "Bracket kit", "Assembly B", 20, "2026-10-07T23:59:59Z"]
+  ],
+  "steps": [
+    ["WO-1001",1,"Prepare"],["WO-1001",2,"Assemble"],["WO-1001",3,"Verify"],
+    ["WO-1002",1,"Prepare"],["WO-1002",2,"Assemble"],["WO-1002",3,"Verify"],
+    ["WO-1003",1,"Assemble"],["WO-1003",2,"Verify"],
+    ["WO-1004",1,"Assemble"],["WO-1004",2,"Verify"],
+    ["WO-1005",1,"Prepare"],["WO-1005",2,"Assemble"],["WO-1005",3,"Verify"],
+    ["WO-1006",1,"Assemble"],["WO-1006",2,"Verify"],
+    ["WO-1007",1,"Verify"],["WO-1008",1,"Verify"],
+    ["WO-1009",1,"Assemble"],["WO-1009",2,"Verify"],
+    ["WO-1010",1,"Assemble"],["WO-1010",2,"Verify"],
+    ["WO-1011",1,"Assemble"],["WO-1011",2,"Verify"],
+    ["WO-1012",1,"Prepare"],["WO-1012",2,"Assemble"],["WO-1012",3,"Verify"]
+  ],
+  "events": [
+    [1,"WO-1001","EV-01","2026-10-02T13:30:00Z"],
+    [2,"WO-1002","EV-02","2026-10-04T09:00:00Z"],
+    [3,"WO-1002","EV-02","2026-10-04T09:00:00Z"],
+    [4,"WO-1004","EV-04",null],
+    [5,"WO-1005","EV-05","2026-10-07T17:00:00Z"],
+    [6,"WO-1006","EV-06","2026-10-07T23:00:00Z"],
+    [7,"WO-1007","EV-07","2026-10-01T00:00:00Z"],
+    [8,"WO-1008","EV-08","2026-09-30T23:50:00Z"],
+    [9,"WO-1010","EV-10","2026-10-09T08:00:00Z"],
+    [10,"WO-1011","EV-11","2026-10-04T11:00:00Z"],
+    [11,"WO-1011","EV-11","2026-10-04T13:00:00Z"],
+    [12,"WO-1012","EV-12","2026-10-08T00:00:00Z"]
+  ]
+}

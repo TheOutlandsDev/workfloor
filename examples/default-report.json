@@ -1,0 +1,353 @@
+{
+  "version": "0.1.0",
+  "synthetic": true,
+  "start": "2026-10-01",
+  "end": "2026-10-08",
+  "parameters": {
+    "start_utc": "2026-10-01T00:00:00Z",
+    "end_utc": "2026-10-08T00:00:00Z"
+  },
+  "definition": "Orders due in [start, end), using completion events strictly before end. All timestamps are UTC.",
+  "dataset_sha256": "aaa7e4677f215de750cff24cfa315ccaa9d2b15d2c5cce7fc96c4c3bef6126d5",
+  "metrics": {
+    "orders": 9,
+    "units": 365,
+    "delayed": 4,
+    "completed_late": 1,
+    "open_overdue": 3,
+    "on_time": 3,
+    "review": 2
+  },
+  "rows": [
+    {
+      "order_id": "WO-1007",
+      "product": "Bracket kit",
+      "work_center": "Assembly B",
+      "quantity": 15,
+      "due_at": "2026-10-01T00:00:00Z",
+      "completed_at": "2026-10-01T00:00:00Z",
+      "step_count": 1,
+      "replay_rows": 0,
+      "status": "on_time",
+      "status_label": "Completed on time",
+      "steps": [
+        {
+          "order_id": "WO-1007",
+          "sequence": 1,
+          "step_name": "Verify"
+        }
+      ],
+      "events": [
+        {
+          "record_no": 7,
+          "order_id": "WO-1007",
+          "source_event_id": "EV-07",
+          "occurred_at": "2026-10-01T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "order_id": "WO-1001",
+      "product": "Bench sensor",
+      "work_center": "Assembly A",
+      "quantity": 40,
+      "due_at": "2026-10-02T15:00:00Z",
+      "completed_at": "2026-10-02T13:30:00Z",
+      "step_count": 3,
+      "replay_rows": 0,
+      "status": "on_time",
+      "status_label": "Completed on time",
+      "steps": [
+        {
+          "order_id": "WO-1001",
+          "sequence": 1,
+          "step_name": "Prepare"
+        },
+        {
+          "order_id": "WO-1001",
+          "sequence": 2,
+          "step_name": "Assemble"
+        },
+        {
+          "order_id": "WO-1001",
+          "sequence": 3,
+          "step_name": "Verify"
+        }
+      ],
+      "events": [
+        {
+          "record_no": 1,
+          "order_id": "WO-1001",
+          "source_event_id": "EV-01",
+          "occurred_at": "2026-10-02T13:30:00Z"
+        }
+      ]
+    },
+    {
+      "order_id": "WO-1002",
+      "product": "Bracket kit",
+      "work_center": "Assembly B",
+      "quantity": 60,
+      "due_at": "2026-10-03T14:00:00Z",
+      "completed_at": "2026-10-04T09:00:00Z",
+      "step_count": 3,
+      "replay_rows": 1,
+      "status": "completed_late",
+      "status_label": "Completed late",
+      "steps": [
+        {
+          "order_id": "WO-1002",
+          "sequence": 1,
+          "step_name": "Prepare"
+        },
+        {
+          "order_id": "WO-1002",
+          "sequence": 2,
+          "step_name": "Assemble"
+        },
+        {
+          "order_id": "WO-1002",
+          "sequence": 3,
+          "step_name": "Verify"
+        }
+      ],
+      "events": [
+        {
+          "record_no": 2,
+          "order_id": "WO-1002",
+          "source_event_id": "EV-02",
+          "occurred_at": "2026-10-04T09:00:00Z"
+        },
+        {
+          "record_no": 3,
+          "order_id": "WO-1002",
+          "source_event_id": "EV-02",
+          "occurred_at": "2026-10-04T09:00:00Z"
+        }
+      ]
+    },
+    {
+      "order_id": "WO-1011",
+      "product": "Mount plate",
+      "work_center": "Test bay",
+      "quantity": 50,
+      "due_at": "2026-10-04T12:00:00Z",
+      "completed_at": null,
+      "step_count": 2,
+      "replay_rows": 0,
+      "status": "review_conflict",
+      "status_label": "Conflicting event",
+      "steps": [
+        {
+          "order_id": "WO-1011",
+          "sequence": 1,
+          "step_name": "Assemble"
+        },
+        {
+          "order_id": "WO-1011",
+          "sequence": 2,
+          "step_name": "Verify"
+        }
+      ],
+      "events": [
+        {
+          "record_no": 10,
+          "order_id": "WO-1011",
+          "source_event_id": "EV-11",
+          "occurred_at": "2026-10-04T11:00:00Z"
+        },
+        {
+          "record_no": 11,
+          "order_id": "WO-1011",
+          "source_event_id": "EV-11",
+          "occurred_at": "2026-10-04T13:00:00Z"
+        }
+      ]
+    },
+    {
+      "order_id": "WO-1003",
+      "product": "Cable module",
+      "work_center": "Assembly A",
+      "quantity": 25,
+      "due_at": "2026-10-05T12:00:00Z",
+      "completed_at": null,
+      "step_count": 2,
+      "replay_rows": 0,
+      "status": "open_overdue",
+      "status_label": "Open at cutoff",
+      "steps": [
+        {
+          "order_id": "WO-1003",
+          "sequence": 1,
+          "step_name": "Assemble"
+        },
+        {
+          "order_id": "WO-1003",
+          "sequence": 2,
+          "step_name": "Verify"
+        }
+      ],
+      "events": []
+    },
+    {
+      "order_id": "WO-1004",
+      "product": "Bench sensor",
+      "work_center": "Test bay",
+      "quantity": 30,
+      "due_at": "2026-10-06T18:00:00Z",
+      "completed_at": null,
+      "step_count": 2,
+      "replay_rows": 0,
+      "status": "review_missing_time",
+      "status_label": "Missing completion time",
+      "steps": [
+        {
+          "order_id": "WO-1004",
+          "sequence": 1,
+          "step_name": "Assemble"
+        },
+        {
+          "order_id": "WO-1004",
+          "sequence": 2,
+          "step_name": "Verify"
+        }
+      ],
+      "events": [
+        {
+          "record_no": 4,
+          "order_id": "WO-1004",
+          "source_event_id": "EV-04",
+          "occurred_at": null
+        }
+      ]
+    },
+    {
+      "order_id": "WO-1010",
+      "product": "Cable module",
+      "work_center": "Assembly A",
+      "quantity": 45,
+      "due_at": "2026-10-07T12:00:00Z",
+      "completed_at": null,
+      "step_count": 2,
+      "replay_rows": 0,
+      "status": "open_overdue",
+      "status_label": "Open at cutoff",
+      "steps": [
+        {
+          "order_id": "WO-1010",
+          "sequence": 1,
+          "step_name": "Assemble"
+        },
+        {
+          "order_id": "WO-1010",
+          "sequence": 2,
+          "step_name": "Verify"
+        }
+      ],
+      "events": [
+        {
+          "record_no": 9,
+          "order_id": "WO-1010",
+          "source_event_id": "EV-10",
+          "occurred_at": "2026-10-09T08:00:00Z"
+        }
+      ]
+    },
+    {
+      "order_id": "WO-1005",
+      "product": "Mount plate",
+      "work_center": "Assembly B",
+      "quantity": 80,
+      "due_at": "2026-10-07T17:00:00Z",
+      "completed_at": "2026-10-07T17:00:00Z",
+      "step_count": 3,
+      "replay_rows": 0,
+      "status": "on_time",
+      "status_label": "Completed on time",
+      "steps": [
+        {
+          "order_id": "WO-1005",
+          "sequence": 1,
+          "step_name": "Prepare"
+        },
+        {
+          "order_id": "WO-1005",
+          "sequence": 2,
+          "step_name": "Assemble"
+        },
+        {
+          "order_id": "WO-1005",
+          "sequence": 3,
+          "step_name": "Verify"
+        }
+      ],
+      "events": [
+        {
+          "record_no": 5,
+          "order_id": "WO-1005",
+          "source_event_id": "EV-05",
+          "occurred_at": "2026-10-07T17:00:00Z"
+        }
+      ]
+    },
+    {
+      "order_id": "WO-1012",
+      "product": "Bracket kit",
+      "work_center": "Assembly B",
+      "quantity": 20,
+      "due_at": "2026-10-07T23:59:59Z",
+      "completed_at": null,
+      "step_count": 3,
+      "replay_rows": 0,
+      "status": "open_overdue",
+      "status_label": "Open at cutoff",
+      "steps": [
+        {
+          "order_id": "WO-1012",
+          "sequence": 1,
+          "step_name": "Prepare"
+        },
+        {
+          "order_id": "WO-1012",
+          "sequence": 2,
+          "step_name": "Assemble"
+        },
+        {
+          "order_id": "WO-1012",
+          "sequence": 3,
+          "step_name": "Verify"
+        }
+      ],
+      "events": [
+        {
+          "record_no": 12,
+          "order_id": "WO-1012",
+          "source_event_id": "EV-12",
+          "occurred_at": "2026-10-08T00:00:00Z"
+        }
+      ]
+    }
+  ],
+  "quality": {
+    "missing_due_orders": [
+      "WO-1009"
+    ],
+    "missing_due_count": 1,
+    "replay_rows_in_cohort": 1,
+    "conflicting_orders_in_cohort": 1,
+    "missing_completion_time_in_cohort": 1
+  },
+  "validation": {
+    "correct_matches_reference": true,
+    "expected_orders": 9,
+    "expected_units": 365,
+    "naive_orders": 26,
+    "naive_units": 1195,
+    "inflation_detected": true,
+    "extra_joined_rows": 17
+  },
+  "sql": {
+    "correct": "-- Parameters are bound by sqlite3, never inserted into SQL text.\n-- Due dates use [start_utc, end_utc); completions must be before end_utc.\n-- Group events BEFORE joining: one source event, then one order.\nWITH event_groups AS (\n    SELECT order_id, source_event_id,\n           MIN(occurred_at) AS occurred_at,\n           COUNT(*) AS raw_rows,\n           COUNT(DISTINCT COALESCE(occurred_at, '<missing>')) AS variants\n    FROM completion_events\n    GROUP BY order_id, source_event_id\n), order_evidence AS (\n    SELECT order_id,\n           MIN(CASE WHEN variants = 1 AND occurred_at < :end_utc\n                    THEN occurred_at END) AS completed_at,\n           MAX(CASE WHEN variants > 1 THEN 1 ELSE 0 END) AS has_conflict,\n           MAX(CASE WHEN occurred_at IS NULL THEN 1 ELSE 0 END) AS has_missing_time,\n           SUM(CASE WHEN variants = 1 THEN raw_rows - 1 ELSE 0 END) AS replay_rows\n    FROM event_groups\n    GROUP BY order_id\n), step_counts AS (\n    SELECT order_id, COUNT(*) AS step_count\n    FROM process_steps GROUP BY order_id\n)\nSELECT w.order_id, w.product, w.work_center, w.quantity, w.due_at,\n       e.completed_at, COALESCE(s.step_count, 0) AS step_count,\n       COALESCE(e.replay_rows, 0) AS replay_rows,\n       CASE\n           WHEN e.has_conflict = 1 THEN 'review_conflict'\n           WHEN e.has_missing_time = 1 THEN 'review_missing_time'\n           WHEN e.completed_at IS NULL THEN 'open_overdue'\n           WHEN e.completed_at > w.due_at THEN 'completed_late'\n           ELSE 'on_time'\n       END AS status\nFROM work_orders AS w\nLEFT JOIN order_evidence AS e ON e.order_id = w.order_id\nLEFT JOIN step_counts AS s ON s.order_id = w.order_id\nWHERE w.due_at >= :start_utc AND w.due_at < :end_utc\nORDER BY w.due_at, w.order_id;\n",
+    "naive": "-- INTENTIONALLY INCORRECT: COUNT(*) counts joined rows, not work orders.\n-- A planned step and a raw completion row are both one-to-many relationships.\n-- Joining both directly multiplies their rows, including replayed events.\nSELECT COUNT(*) AS work_order_count, COALESCE(SUM(w.quantity), 0) AS units\nFROM work_orders AS w\nLEFT JOIN process_steps AS s ON s.order_id = w.order_id\nLEFT JOIN completion_events AS e\n       ON e.order_id = w.order_id\n      AND (e.occurred_at < :end_utc OR e.occurred_at IS NULL)\nWHERE w.due_at >= :start_utc AND w.due_at < :end_utc;\n"
+  }
+}

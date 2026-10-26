@@ -1,0 +1,162 @@
+"""Run Workfloor on loopback using Python 3.12+; no installed packages needed."""
+from __future__ import annotations
+
+import argparse
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import json
+from pathlib import Path
+import secrets
+import sqlite3
+import sys
+from urllib.parse import parse_qs, urlsplit
+
+import workbench as wb
+
+ASSETS = {
+    "/": ("index.html", "text/html; charset=utf-8"),
+    "/style.css": ("style.css", "text/css; charset=utf-8"),
+    "/app.js": ("app.js", "text/javascript; charset=utf-8"),
+    "/mark.svg": ("mark.svg", "image/svg+xml"),
+}
+
+
+class Handler(BaseHTTPRequestHandler):
+    server_version = "Workfloor/0.1"
+
+    def setup(self):
+        super().setup()
+        self.connection.settimeout(5)
+
+    def log_message(self, fmt, *args):
+        # Routine request bodies, headers and tokens are not logged.
+        return
+
+    def respond(self, status, value, content_type="application/json; charset=utf-8", body=True):
+        data = value if isinstance(value, bytes) else json.dumps(value, ensure_ascii=False).encode()
+        self.send_response(status)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'")
+        self.end_headers()
+        if body:
+            self.wfile.write(data)
+
+    def allowed_host(self):
+        if self.headers.get("Host") != self.server.authority:
+            self.respond(403, {"error": "Use the loopback URL printed by the server."})
+            return False
+        return True
+
+    def do_HEAD(self):
+        self.do_GET(body=False)
+
+    def do_GET(self, body=True):
+        if not self.allowed_host():
+            return
+        url = urlsplit(self.path)
+        try:
+            if url.path in ASSETS:
+                name, mime = ASSETS[url.path]
+                self.respond(200, (wb.ROOT / "static" / name).read_bytes(), mime, body)
+            elif url.path == "/api/meta":
+                self.respond(200, {"name": "Workfloor", "version": wb.VERSION,
+                                   "synthetic": True, "token": self.server.token,
+                                   "default_start": wb.DEFAULT_START, "default_end": wb.DEFAULT_END}, body=body)
+            elif url.path == "/api/report":
+                query = parse_qs(url.query, keep_blank_values=True)
+                if set(query) != {"start", "end"} or any(len(v) != 1 for v in query.values()):
+                    raise wb.InputError("Provide exactly one start and end date.")
+                self.respond(200, wb.report(self.server.db_path, query["start"][0], query["end"][0]), body=body)
+            elif url.path == "/api/reports":
+                self.respond(200, {"reports": wb.history(self.server.db_path)}, body=body)
+            elif url.path.startswith("/api/reports/"):
+                result = wb.saved_report(self.server.db_path, url.path.removeprefix("/api/reports/"))
+                self.respond(200 if result else 404, result or {"error": "Snapshot not found."}, body=body)
+            else:
+                self.respond(404, {"error": "Not found."}, body=body)
+        except wb.InputError as exc:
+            self.respond(400, {"error": str(exc)}, body=body)
+        except (sqlite3.Error, OSError, ValueError, KeyError, TypeError):
+            self.respond(500, {"error": "Could not read the local data. Preserve the database and check the application files."}, body=body)
+
+    def do_POST(self):
+        if not self.allowed_host():
+            return
+        origin = self.headers.get("Origin")
+        token = self.headers.get("X-Workbench-Token", "")
+        if origin not in (None, "null", "http://" + self.server.authority) or not secrets.compare_digest(token, self.server.token):
+            self.respond(403, {"error": "Reload this local application before saving."})
+            return
+        if self.path != "/api/reports":
+            self.respond(404, {"error": "Not found."})
+            return
+        if self.headers.get("Content-Type", "").split(";")[0].strip() != "application/json":
+            self.respond(415, {"error": "Use an application/json request."})
+            return
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            if not 0 < length <= 4096:
+                self.respond(413, {"error": "Request must contain 1 to 4096 bytes."})
+                return
+            payload = json.loads(self.rfile.read(length))
+            if not isinstance(payload, dict) or set(payload) != {"start", "end", "dataset_sha256"}:
+                raise wb.InputError("Save requires start, end and the loaded dataset fingerprint.")
+            result = wb.save_report(self.server.db_path, payload["start"], payload["end"], payload["dataset_sha256"])
+            self.respond(201, result)
+        except wb.StaleDataError as exc:
+            self.respond(409, {"error": str(exc)})
+        except (wb.InputError, ValueError, TypeError, UnicodeError) as exc:
+            self.respond(400, {"error": str(exc) if isinstance(exc, wb.InputError) else "Invalid JSON request."})
+        except (sqlite3.Error, OSError):
+            self.respond(503, {"error": "Snapshot could not be saved. Existing reports are retained; retry after checking local storage."})
+
+
+def make_server(path, port=0):
+    server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    server.daemon_threads = False
+    server.block_on_close = True
+    server.db_path = Path(path)
+    server.authority = f"127.0.0.1:{server.server_port}"
+    server.token = secrets.token_urlsafe(32)
+    return server
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Workfloor: synthetic manufacturing and SQL reporting workbench.")
+    parser.add_argument("--data-dir", type=Path, default=wb.ROOT / "data", help="Directory for the persistent SQLite database")
+    parser.add_argument("--port", type=int, default=8765, help="Loopback port; use 0 to select a free port")
+    parser.add_argument("--demo-report", action="store_true", help="Print the same report as JSON and exit")
+    parser.add_argument("--start", default=wb.DEFAULT_START)
+    parser.add_argument("--end", default=wb.DEFAULT_END)
+    args = parser.parse_args()
+    if sys.version_info < (3, 12):
+        parser.error("Python 3.12 or newer is required.")
+    if not 0 <= args.port <= 65535:
+        parser.error("Port must be between 0 and 65535.")
+    try:
+        wb.bounds(args.start, args.end)
+        db = args.data_dir.resolve() / "workfloor.sqlite3"
+        created = wb.ensure_database(db)
+        if args.demo_report:
+            print(json.dumps(wb.report(db, args.start, args.end), indent=2))
+            return
+        with make_server(db, args.port) as server:
+            print(f"Workfloor {wb.VERSION} | SYNTHETIC DATA ONLY", flush=True)
+            print(f"{'Created' if created else 'Reopened'} local database: {db}", flush=True)
+            print(f"Open http://{server.authority}/", flush=True)
+            print("Ctrl+C stops the server. Saved snapshots remain in SQLite.", flush=True)
+            try:
+                server.serve_forever(poll_interval=0.2)
+            except KeyboardInterrupt:
+                pass
+            finally:
+                server.server_close()
+    except (wb.InputError, sqlite3.Error, OSError) as exc:
+        parser.exit(1, f"Could not start Workfloor: {exc}\n")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,90 @@
+{
+  "date": "2026-10-26",
+  "version": "0.1.0",
+  "status": "LOCAL_PROTOTYPE_CHECKED_ON_WINDOWS",
+  "environment": {
+    "os": "Windows 11",
+    "python": "3.12.7",
+    "sqlite": "3.45.3",
+    "dependencies": "Python standard library only"
+  },
+  "automated": {
+    "tests": 21,
+    "passed": 21,
+    "skipped": 0,
+    "final_seconds": 3.409,
+    "command": "python -m unittest discover -s tests -v",
+    "javascript_syntax": "node --check static/app.js: passed"
+  },
+  "default_report": {
+    "start": "2026-10-01",
+    "end_exclusive": "2026-10-08",
+    "orders": 9,
+    "units": 365,
+    "delayed": 4,
+    "completed_late": 1,
+    "open_overdue": 3,
+    "review": 2,
+    "on_time": 3,
+    "naive_rows": 26,
+    "naive_units": 1195,
+    "extra_rows_detected": 17,
+    "reference_matches": true
+  },
+  "browser": {
+    "default_report": "PASS",
+    "delayed_filter_four_orders": "PASS",
+    "conflict_inspector": "PASS",
+    "empty_range": "PASS",
+    "invalid_range_and_disabled_save": "PASS",
+    "sql_tabs": "PASS",
+    "save_snapshot": "PASS",
+    "open_saved_snapshot": "PASS",
+    "json_download_content": "PASS",
+    "same_database_after_server_process_restart": "PASS",
+    "copy_sql_bytes": "UNVERIFIED: success message observed; tool clipboard view retained unrelated earlier session content"
+  },
+  "layout": {
+    "desktop": {
+      "width": 1280,
+      "client": 1265,
+      "scroll": 1265
+    },
+    "phone390": {
+      "width": 390,
+      "client": 375,
+      "scroll": 375
+    },
+    "phone320": {
+      "width": 320,
+      "client": 305,
+      "scroll": 305
+    },
+    "keyboard_table_scroll_pixels": 40,
+    "scope": "In-app browser viewport emulation, not physical-phone testing"
+  },
+  "source_policy": "All fixture records, products, centers, process steps and events are original invented examples.",
+  "dataset_sha256": "aaa7e4677f215de750cff24cfa315ccaa9d2b15d2c5cce7fc96c4c3bef6126d5",
+  "restart_scope": "Tool interruption returned exit code 1; the same saved snapshot reopened after restart. Graceful shutdown and power-loss recovery are not established.",
+  "handoff_check": {
+    "status": "PASS",
+    "source": "Fresh ZIP extraction into a path containing spaces",
+    "python_help": 0,
+    "python_cli_report": 0,
+    "windows_cmd_launcher_report": 0,
+    "default_metrics_match": true,
+    "dataset_fingerprint_match": true,
+    "runtime_payload_unchanged_after_check": true,
+    "scope": "Existing Windows host, fresh project extraction and database; not a fresh OS"
+  },
+  "not_tested": [
+    "Linux/macOS runtime",
+    "Public hosting",
+    "Multi-user operation",
+    "Physical phones",
+    "Independent security or accessibility audits",
+    "Large datasets",
+    "Power-loss recovery",
+    "Long-term operation"
+  ]
+}
