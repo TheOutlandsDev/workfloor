@@ -24,7 +24,7 @@ jobs:
           python-version: '3.12'
       - name: Record runtime versions
         run: python -c "import platform, sqlite3, sys; print(platform.platform()); print(sys.version); print('SQLite', sqlite3.sqlite_version)"
-      - name: Run the 21 existing tests
+      - name: Run all automated tests
         run: python -m unittest discover -s tests -v
       - name: Check fresh-database CLI and Windows launcher
         run: python scripts/verify_entry_points.py

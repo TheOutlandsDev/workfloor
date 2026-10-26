@@ -1,0 +1,4 @@
+order_id,product,work_center,quantity,due_at,completed_at
+DEMO-3001,Sample housing,Assembly C,15,2026-10-05T12:00:00Z,
+DEMO-3001,,Assembly C,five,2026-09-31T12:00:00Z,
+WO-1002,Existing order collision,Test bay,10,2026-10-06T12:00:00Z,

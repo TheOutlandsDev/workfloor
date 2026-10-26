@@ -1,0 +1,4 @@
+order_id,product,work_center,quantity,due_at,completed_at
+DEMO-2001,Test housing,Assembly C,20,2026-10-03T12:00:00Z,2026-10-04T09:00:00Z
+DEMO-2002,Cable kit,Assembly C,30,2026-10-06T12:00:00Z,
+DEMO-2003,Bracket pair,Test bay,25,2026-10-07T15:00:00Z,2026-10-07T14:00:00Z

@@ -22,6 +22,16 @@ This provides reproducibility for a local example, not server authorization or a
 
 Python groups source rows and compares parsed UTC datetimes without running the report SQL. The test suite additionally checks manually authored expected classifications, counts and boundary examples. Agreement is useful evidence for this bounded fixture; both implementations still share the documented business policy and can share a mistaken assumption. The wrong SQL remains visible and deliberately fails on the default fixture. A range that does not expose its defect is labeled accordingly.
 
-## First milestone boundary
+## v0.1 milestone boundary
 
 This original demonstration combines reporting judgment with a complete small application. Source imports, manufacturing integrations, live planning, authentication and public hosting would substantially change its operating assumptions. They are separate future work rather than hidden prototype features.
+
+## v0.2 — all rows or no rows
+
+CSV imports use one record per new work order and an optional completion timestamp. Required UTC due times make imported orders reportable; an empty completion creates no event. The narrow format deliberately excludes routing steps, raw event replays, conflict resolution and updates. Those need a different reconciliation policy.
+
+Every row is checked before any row can be imported. Duplicate IDs in either the file or database block the whole batch. This trades the convenience of partial success/upserts for a predictable review and retry path. Text is never interpolated into SQL or HTML.
+
+A valid preview is bound to the exact UTF-8 file hash and source fingerprint with a process-scoped signature. Apply revalidates under BEGIN IMMEDIATE and inserts new source rows only. A source change requires another preview; any write/reference failure rolls back the entire batch. The signature binds inputs, not human attention or record authenticity.
+
+The existing database schema and saved JSON payloads are preserved. No migration, persistent import-history table or undo-import UI was added. Receipts can be downloaded during the browser session; saved snapshots freeze reporting evidence, not a complete database backup. These boundaries keep the next data workflow inspectable without implying a production import service.

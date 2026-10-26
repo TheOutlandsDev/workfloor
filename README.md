@@ -2,15 +2,15 @@
 
 [![Verify Workfloor](https://github.com/TheOutlandsDev/workfloor/actions/workflows/verify.yml/badge.svg?branch=main&event=push)](https://github.com/TheOutlandsDev/workfloor/actions/workflows/verify.yml)
 
-**A runnable local prototype using entirely invented manufacturing data.** Choose a due-date range, identify delayed work orders, inspect their completion evidence, and watch validation catch a join that inflates the count.
+**A runnable local prototype using entirely invented manufacturing data.** Choose a due-date range, identify delayed work orders, inspect their completion evidence, and watch validation catch a join that inflates the count. In v0.2, preview a synthetic CSV and add its orders together without overwriting existing records or snapshots.
 
 Built with Python's standard library, SQLite, and plain HTML/CSS/JavaScript. No package installation, account, hosted API, or employer system is needed.
 
-[Download v0.1.0](https://github.com/TheOutlandsDev/workfloor/releases/download/v0.1.0/workfloor-0.1.0.zip) · [Portfolio case study](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/#workfloor) · [Release notes](docs/RELEASE.md)
+[Download v0.2.0](https://github.com/TheOutlandsDev/workfloor/releases/download/v0.2.0/workfloor-0.2.0.zip) · [Portfolio case study](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/#workfloor) · [Release notes](docs/RELEASE.md)
 
 [Watch the 80-second walkthrough](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/#workfloor-walkthrough) · [MP4](docs/media/workfloor-walkthrough.mp4) · [Transcript and capture notes](docs/WALKTHROUGH.md). Captioned steps from actual application captures, using synthetic data; edited timing and no audio.
 
-![Actual prototype, synthetic dataset](docs/screenshots/overview.jpg)
+![v0.2: three valid invented orders previewed before import](docs/screenshots/import-valid-preview.jpg)
 
 ## Start here
 
@@ -37,13 +37,25 @@ The first launch creates `data/workfloor.sqlite3` with the invented fixture. Lat
 
 Try `2026-11-01` to `2026-11-02` for the empty state. Try an end earlier than the start for validation feedback. An empty or sparse range can fail to expose the bad join; the interface says so instead of calling that query correct.
 
+## Preview and import a synthetic CSV
+
+1. Save a snapshot of the default report first: **9 orders / 4 delayed**.
+2. Open **Import CSV** and choose **Load error sample → Preview CSV**. Duplicate IDs, an invalid date and missing/invalid required values block the whole file. No rows are added.
+3. Choose **Load valid sample → Preview CSV**. Review all three invented orders, then select **Import all validated rows**.
+4. The default report becomes **12 orders / 440 units / 6 delayed / 2 needing review / 4 on time**. The independent reference still matches. There are now 15 orders in the full source, including the three outside the default cohort.
+5. Open the earlier saved snapshot: it still shows **9 orders / 4 delayed**. Return to the current query to see the imported data. Restarting with the same data directory preserves both.
+
+You can also choose a UTF-8 CSV file, confirm it contains invented data, and preview it. Imports are limited to **500 records / 256 KiB**, with one row per new order. Every row must pass; there are no partial imports, updates or deletes. A changed file/source requires a new preview; a failed write rolls back the whole transaction.
+
+[CSV format, failure behavior and actual workflow](docs/IMPORTS.md) · [Valid sample](examples/import-valid.csv) · [Intentional errors](examples/import-errors.csv)
+
 ## Who it is for
 
 A developer or reporting reviewer who wants to inspect an operational report's definition, source grain, date boundaries and uncertainty. This example makes one narrow workflow reproducible; it does not forecast production or control equipment.
 
 ## Project contribution
 
-Connor O'Shea selected the manufacturing/reporting problem and requested the initial scope: a date-range workflow, parameterized SQL, a deliberate join error, persistent data, and a reproducible handoff. The prototype's code, interface, invented fixtures, tests and documentation were implemented with Codex assistance during this build. The specific reporting policy and tradeoffs are documented for review in [DECISIONS.md](docs/DECISIONS.md).
+Connor O'Shea selected the manufacturing/reporting problem and requested the initial scope: a date-range workflow, parameterized SQL, a deliberate join error, persistent data, and a reproducible handoff. Connor subsequently specified CSV preview, safe imports and preservation of existing records for v0.2. The prototype's code, interface, invented fixtures, tests and documentation were implemented with Codex assistance during these builds. The specific reporting policy and tradeoffs are documented for review in [DECISIONS.md](docs/DECISIONS.md).
 
 All orders, products, work centers, process steps and events were invented for this project. This is an original public demonstration, with no employer code, schema, records or operational deployment represented.
 
@@ -79,9 +91,9 @@ For recovery after an interrupted run, restart with the same `--data-dir`. For a
 
 ## Validation and status
 
-**Local prototype · Windows runtime checked · 21 automated tests passed with no skips.** The browser workflow, JSON download, process restart and saved-snapshot reopening were observed on 26 October 2026. Desktop and phone-width checks use browser emulation, not physical phones.
+**v0.2 local prototype · Windows runtime checked · 39 automated tests passed with no skips.** The browser workflow, JSON download, process restart and saved-snapshot reopening were observed on 26 October 2026. Desktop and phone-width checks use browser emulation, not physical phones.
 
-See [actual validation and limitations](docs/VALIDATION.md), [design decisions](docs/DECISIONS.md), [machine-readable verification](docs/verification.json), and the [example report](examples/default-report.json).
+See [actual validation and limitations](docs/VALIDATION.md), [design decisions](docs/DECISIONS.md), [v0.2 machine-readable verification](docs/verification-v0.2.0.json), and the [example report](examples/default-report.json).
 
 ```console
 python -m unittest discover -s tests -v
@@ -92,7 +104,7 @@ The CLI emits the same JSON report used by the interface. Tests create and remov
 
 ### Automatic verification
 
-[Verify Workfloor](.github/workflows/verify.yml) runs on **every push and pull request**, and can also be started manually. Its Windows job sets up Python 3.12, records the Python/SQLite versions, runs the 21 existing tests, and exercises both `app.py --demo-report` and `start-workfloor.cmd --demo-report` against separate fresh databases. The entry-point check runs outside the project working directory with spaces in the data paths; both reports must match the expected totals, independent reference and deliberate 26-versus-9 join error.
+[Verify Workfloor](.github/workflows/verify.yml) runs on **every push and pull request**, and can also be started manually. Its Windows job sets up Python 3.12, records the Python/SQLite versions, runs the complete suite (currently 39 tests, including the original 21), and exercises both `app.py --demo-report` and `start-workfloor.cmd --demo-report` against separate fresh databases. The entry-point check runs outside the project working directory with spaces in the data paths; both reports must match the expected totals, independent reference and deliberate 26-versus-9 join error.
 
 The [first hosted run passed](https://github.com/TheOutlandsDev/workfloor/actions/runs/40407181415) on Windows Server 2025, Python 3.12.10 and SQLite 3.49.1. The badge was added after that success. CI checks backend behavior and command-line entry points; the browser walkthrough is a separate observed check.
 
@@ -104,10 +116,10 @@ python scripts/verify_entry_points.py
 
 ## Current limits
 
-This is a single-user, loopback-only local application. It has no MES connection, imports, user accounts, roles, production scheduling, shift calendar, rework/reopening model, partial completion accounting, or schema migration. It is not an official production report or a medical-device tool.
+This is a single-user, loopback-only local application. It supports only the bounded, insert-only CSV format described above. It has no MES connection, user accounts, roles, production scheduling, shift calendar, rework/reopening model, partial completion accounting, or schema migration. It is not an official production report or a medical-device tool.
 
 The cutoff is an **event-time view over the current dataset**, not a reconstruction of what was known historically. There is no ingestion-time history. Missing/conflicting evidence is a review case, not proof of a cause, completed quantity, or actual operator activity. The report does not infer capacity or root cause.
 
 Linux/macOS execution, public hosting, multi-user use, accessibility conformance, penetration testing, large datasets, crash/power-loss recovery and long-term maintenance are unqualified. The UI shows up to 50 recent snapshots; older snapshots remain in SQLite. A snapshot is not a backup or a tamper-evident audit log.
 
-License: [MIT](LICENSE). This repository contains the source for the Windows-checked local prototype. The packaged v0.1.0 application matches these runtime files; publication links and release documentation were added afterward. See [release provenance](docs/RELEASE.md).
+License: [MIT](LICENSE). This repository contains the v0.2.0 source. The original v0.1.0 release remains available with its original files and recorded validation; the CSV workflow was added in v0.2.0. See [release provenance](docs/RELEASE.md).

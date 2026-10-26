@@ -11,17 +11,23 @@ import sys
 from urllib.parse import parse_qs, urlsplit
 
 import workbench as wb
+import csv_imports
 
 ASSETS = {
     "/": ("index.html", "text/html; charset=utf-8"),
     "/style.css": ("style.css", "text/css; charset=utf-8"),
     "/app.js": ("app.js", "text/javascript; charset=utf-8"),
+    "/imports.js": ("imports.js", "text/javascript; charset=utf-8"),
     "/mark.svg": ("mark.svg", "image/svg+xml"),
+}
+SAMPLES = {
+    "/examples/import-valid.csv": "import-valid.csv",
+    "/examples/import-errors.csv": "import-errors.csv",
 }
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "Workfloor/0.1"
+    server_version = "Workfloor/0.2"
 
     def setup(self):
         super().setup()
@@ -61,6 +67,8 @@ class Handler(BaseHTTPRequestHandler):
             if url.path in ASSETS:
                 name, mime = ASSETS[url.path]
                 self.respond(200, (wb.ROOT / "static" / name).read_bytes(), mime, body)
+            elif url.path in SAMPLES:
+                self.respond(200, (wb.ROOT / "examples" / SAMPLES[url.path]).read_bytes(), "text/csv; charset=utf-8", body)
             elif url.path == "/api/meta":
                 self.respond(200, {"name": "Workfloor", "version": wb.VERSION,
                                    "synthetic": True, "token": self.server.token,
@@ -88,9 +96,9 @@ class Handler(BaseHTTPRequestHandler):
         origin = self.headers.get("Origin")
         token = self.headers.get("X-Workbench-Token", "")
         if origin not in (None, "null", "http://" + self.server.authority) or not secrets.compare_digest(token, self.server.token):
-            self.respond(403, {"error": "Reload this local application before saving."})
+            self.respond(403, {"error": "Reload this local application before saving or importing."})
             return
-        if self.path != "/api/reports":
+        if self.path not in ("/api/reports", "/api/imports/preview", "/api/imports/apply"):
             self.respond(404, {"error": "Not found."})
             return
         if self.headers.get("Content-Type", "").split(";")[0].strip() != "application/json":
@@ -98,20 +106,35 @@ class Handler(BaseHTTPRequestHandler):
             return
         try:
             length = int(self.headers.get("Content-Length", "0"))
-            if not 0 < length <= 4096:
-                self.respond(413, {"error": "Request must contain 1 to 4096 bytes."})
+            limit = 4096 if self.path == "/api/reports" else 2 * 1024 * 1024
+            if not 0 < length <= limit:
+                self.respond(413, {"error": f"Request must contain 1 to {limit} bytes."})
                 return
             payload = json.loads(self.rfile.read(length))
-            if not isinstance(payload, dict) or set(payload) != {"start", "end", "dataset_sha256"}:
-                raise wb.InputError("Save requires start, end and the loaded dataset fingerprint.")
-            result = wb.save_report(self.server.db_path, payload["start"], payload["end"], payload["dataset_sha256"])
-            self.respond(201, result)
+            if self.path == "/api/reports":
+                if not isinstance(payload, dict) or set(payload) != {"start", "end", "dataset_sha256"}:
+                    raise wb.InputError("Save requires start, end and the loaded dataset fingerprint.")
+                result = wb.save_report(self.server.db_path, payload["start"], payload["end"], payload["dataset_sha256"])
+                self.respond(201, result)
+            else:
+                required = {"csv_text", "synthetic"}
+                if self.path == "/api/imports/apply":
+                    required |= {"dataset_sha256", "preview_token"}
+                if not isinstance(payload, dict) or set(payload) != required or payload["synthetic"] is not True:
+                    raise wb.InputError("Confirm this original demonstration uses invented data, with the required CSV fields.")
+                if self.path == "/api/imports/preview":
+                    result = csv_imports.preview(self.server.db_path, payload["csv_text"], self.server.preview_key)
+                    self.respond(200, result)
+                else:
+                    result = csv_imports.apply_import(self.server.db_path, payload["csv_text"],
+                        payload["dataset_sha256"], payload["preview_token"], self.server.preview_key)
+                    self.respond(201, result)
         except wb.StaleDataError as exc:
             self.respond(409, {"error": str(exc)})
         except (wb.InputError, ValueError, TypeError, UnicodeError) as exc:
             self.respond(400, {"error": str(exc) if isinstance(exc, wb.InputError) else "Invalid JSON request."})
         except (sqlite3.Error, OSError):
-            self.respond(503, {"error": "Snapshot could not be saved. Existing reports are retained; retry after checking local storage."})
+            self.respond(503, {"error": "The write could not complete and was rolled back. Existing records and snapshots are retained; check local storage before retrying."})
 
 
 def make_server(path, port=0):
@@ -121,6 +144,7 @@ def make_server(path, port=0):
     server.db_path = Path(path)
     server.authority = f"127.0.0.1:{server.server_port}"
     server.token = secrets.token_urlsafe(32)
+    server.preview_key = secrets.token_bytes(32)
     return server
 
 

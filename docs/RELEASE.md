@@ -1,29 +1,17 @@
-# v0.1.0 — first public release
+# Workfloor v0.2.0 — CSV preview and transactional imports
 
-Workfloor is an original synthetic manufacturing and SQL reporting workbench.
-The runtime files were checked locally on Windows before publication. The public
-repository adds publication links and this release note; it does not claim that
-the app has a hosted backend or a qualified Linux runtime.
+[Download v0.2.0](https://github.com/TheOutlandsDev/workfloor/releases/tag/v0.2.0) · [CSV workflow](IMPORTS.md) · [Validation](VALIDATION.md)
 
-## Download and reproduce
+A Windows-checked local prototype using original invented manufacturing data. Python 3.12+ and its standard SQLite module are required; no package installation or account is needed.
 
-Use the attached `workfloor-0.1.0.zip` from the
-[GitHub release](https://github.com/TheOutlandsDev/workfloor/releases/tag/v0.1.0).
-Its SHA-256 is recorded in `RELEASE-CHECKSUMS.txt`. The ZIP includes its own
-member manifest and the original local handoff README. The repository's root
-manifest describes the current published source files instead.
+v0.2 adds UTF-8 CSV preview, row-level validation, insert-only imports in one transaction, exact-file/source preview checks, sample files and a downloadable import receipt. Existing source rows and saved snapshot payloads are retained. Database format remains 1, so an existing v0.1 database needs no schema migration.
 
-Windows 11 / Python 3.12.7 / SQLite 3.45.3: 21 automated tests passed with no
-skips. The browser report, conflict inspector, empty/invalid ranges, saved
-snapshots, JSON export and snapshot reopening after process restart were checked.
-A fresh extraction into a path containing spaces ran through both Python and
-the Windows launcher. Details and limits are in `docs/VALIDATION.md` and
-`docs/verification.json`; these are recorded results, not a CI badge.
+The fresh baseline remains 9 orders / 365 units / 4 delayed, with a deliberate 26-versus-9 join error. Applying the included three-order sample produces 12 orders / 440 units / 6 delayed. The earlier saved baseline remains unchanged.
 
-The expected default result is 9 orders, 365 units, 4 delayed, 2 needing review,
-and 3 completed on time. The intentionally wrong join yields 26 rows and
-1,195 units; validation catches the mismatch. All records are invented.
+**39 automated tests passed locally**, with no skips. Both fresh-database command-line entry points passed. The import/file-picker/report/reopen browser workflow was observed separately. CI repeats backend and entry-point checks on pushes and pull requests; its per-commit result is public.
 
-Screenshots are actual captures of this synthetic local application. No runtime
-database, credentials, private operational records or employer material is
-included in this release.
+Use the attached workfloor-0.2.0.zip and SHA256SUMS.txt. The ZIP contains this source tree and its member SHA-256 manifest, without Git metadata, databases, runtime logs, credentials or private material. Extract into a new directory, then run Python app.py or start-workfloor.cmd. Choose a separate data directory for independent experiments.
+
+The original [v0.1.0 release](https://github.com/TheOutlandsDev/workfloor/releases/tag/v0.1.0), [release notes](RELEASE-v0.1.0.md) and original checksum remain available unchanged. The older 80-second video documents reporting and snapshots in v0.1; v0.2 CSV behavior is documented with actual captures in IMPORTS.md.
+
+This remains an insert-only, loopback-only synthetic demonstration. There is no MES integration, undo-import UI, authentication, multi-user service or qualified Linux/macOS runtime. See the validation record for the observed result and limits.

@@ -3,7 +3,7 @@ const $ = id => document.getElementById(id);
 let report = null, meta = null, selectedQuery = 'correct', savedView = false, busy = false;
 function element(tag, text, className) { const el = document.createElement(tag); if (text != null) el.textContent = text; if (className) el.className = className; return el; }
 function message(text, error = false) { $('message').textContent = text; $('message').classList.toggle('error', error); }
-function setBusy(value) { busy = value; ['run','example','save','export','current'].forEach(id => $(id).disabled = value); $('start').disabled = value; $('end').disabled = value; if (!value) { $('save').disabled = !report || savedView || !report.validation.correct_matches_reference || datesDirty(); $('export').disabled = !report; } }
+function setBusy(value) { busy = value; ['run','example','save','export','current'].forEach(id => $(id).disabled = value); $('start').disabled = value; $('end').disabled = value; if(typeof updateImportControls==='function')updateImportControls(); if (!value) { $('save').disabled = !report || savedView || !report.validation.correct_matches_reference || datesDirty(); $('export').disabled = !report; } }
 function datesDirty() { return report && ($('start').value !== report.start || $('end').value !== report.end); }
 async function api(path, options = {}) { const response = await fetch(path, {cache:'no-store', ...options}); let data; try { data = await response.json(); } catch { throw new Error('The local server returned an unreadable response.'); } if (!response.ok) throw new Error(data.error || 'The local request failed.'); return data; }
 function dayTime(value) { return value ? value.replace('2026-', '').replace('T', ' · ').replace(/:00Z$/, '') : 'Not recorded'; }
@@ -16,6 +16,8 @@ function drawRows() { const body = $('orders-body'); body.replaceChildren(); if 
 }
 function drawSql() { if (!report) return; $('query-text').textContent=report.sql[selectedQuery]; ['correct','naive'].forEach(key=>$('tab-'+key).setAttribute('aria-selected',String(key===selectedQuery))); $('sql-code').setAttribute('aria-labelledby','tab-'+selectedQuery); }
 function drawReport() { const m=report.metrics, v=report.validation, q=report.quality;
+  $('dataset-count').textContent=report.dataset_orders?`${report.dataset_orders} invented orders in ${savedView?'this snapshot':'local source'}`:'Original fixture snapshot';
+  $('dataset-label').textContent=savedView?'SNAPSHOT DATASET':'ACTIVE DATASET';
   $('total').textContent=m.orders; $('units').textContent=`${m.units} units in this cohort`; $('delayed').textContent=m.delayed; $('review').textContent=m.review; $('on-time').textContent=m.on_time; $('delay-breakdown').textContent=`${m.completed_late} completed late · ${m.open_overdue} open`;
   $('scope').textContent=`Due ${report.parameters.start_utc.replace('T',' ').replace('Z',' UTC')} up to ${report.parameters.end_utc.replace('T',' ').replace('Z',' UTC')} (excluded). Completion evidence stops at the same cutoff.`;
   $('view-state').textContent=savedView?'SAVED SNAPSHOT':'CURRENT QUERY';

@@ -15,7 +15,7 @@ import uuid
 ROOT = Path(__file__).resolve().parent
 APP_ID = 1297564209
 DEFAULT_START, DEFAULT_END = "2026-10-01", "2026-10-08"
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 STATUS_LABELS = {
     "on_time": "Completed on time", "completed_late": "Completed late",
     "open_overdue": "Open at cutoff", "review_conflict": "Conflicting event",
@@ -151,10 +151,14 @@ def reference_rows(data, parameters):
     return sorted(result, key=lambda r: (r["due_at"], r["order_id"]))
 
 
+def source_fingerprint(data):
+    return hashlib.sha256(json_text(data).encode()).hexdigest()
+
+
 def calculate(con, start=DEFAULT_START, end=DEFAULT_END):
     parameters = bounds(start, end)
     data = source_data(con)
-    fingerprint = hashlib.sha256(json_text(data).encode()).hexdigest()
+    fingerprint = source_fingerprint(data)
     correct_sql = (ROOT / "sql/report.sql").read_text(encoding="utf-8")
     naive_sql = (ROOT / "sql/naive_join.sql").read_text(encoding="utf-8")
     rows = [dict(r) for r in con.execute(correct_sql, parameters)]
@@ -173,7 +177,7 @@ def calculate(con, start=DEFAULT_START, end=DEFAULT_END):
     # Compare the query's original columns before UI-only fields are added.
     comparable = [{k: r[k] for k in reference[0]} for r in rows] if reference else rows
     return {
-        "version": VERSION, "synthetic": True,
+        "version": VERSION, "synthetic": True, "dataset_orders": len(data["orders"]),
         "start": start, "end": end, "parameters": parameters,
         "definition": "Orders due in [start, end), using completion events strictly before end. All timestamps are UTC.",
         "dataset_sha256": fingerprint,

@@ -1,56 +1,45 @@
-# Validation record — 26 October 2026
+# v0.2 validation — 26 October 2026
 
-## Environment and automated result
+## Current automated checks
 
-- Windows 11, Python **3.12.7**, SQLite **3.45.3**.
-- `python -m unittest discover -s tests -v`: **21 tests passed**, no skips; final run 3.409 seconds.
-- `node --check static/app.js`: passed. Node is a development check only, not an application requirement.
-- The CLI report executed against a newly created database and returned the expected fixture result.
+Windows 11, Python **3.12.7**, SQLite **3.45.3**.
 
-The tests use real SQLite files and loopback HTTP servers. They cover manually authored expected results, due-time and completion boundaries, exact replays vs conflicting timestamps, unknown/missing data, empty ranges, invalid dates and injection-like input, unchanged source reads, snapshot reopening, stale-save refusal, insert-failure rollback, existing foreign-database preservation, source timestamp rejection, relational constraints, local HTTP reads/writes, Host/Origin/token checks and the static asset allowlist.
+- All **39 tests passed**, no skips, in 4.257 seconds: the original 21 reporting/HTTP tests plus 18 CSV/import tests.
+- Fresh-database entry-point verification passed for both the Python CLI and Windows launcher. Both produced identical default reports from separate data paths containing spaces, outside the project working directory.
+- Both browser scripts passed Node syntax checks. Node is a development check only.
 
-An initial run could not use the desktop sandbox's redirected OS temp directory. Disposable fixtures were moved to the checkout-local `.test-tmp` directory. A test setup connection was also explicitly closed to release its Windows file handle before cleanup. Neither failure was counted as a passing application test. The final complete run passed.
+The suite exercises real SQLite transactions and loopback HTTP. New checks cover read-only preview (including unchanged database bytes), mixed-validity file rejection, headers and field counts, calendar/UTC validation, duplicates, UTF-8/BOM/quoted text, byte/row limits, exact-file preview binding, changed source, simultaneous applies, failure after a later insert and failure inserting a completion event, old snapshot preservation, and HTTP token/origin/type/size boundaries.
 
-## Automatic verification
+The [workflow](../.github/workflows/verify.yml) runs the full suite and entry-point checks on every push and pull request, with manual dispatch available. It records runner/Python/SQLite versions and uses pinned checkout/setup actions with read-only repository permissions. See [Actions](https://github.com/TheOutlandsDev/workfloor/actions/workflows/verify.yml) for the result attached to each public commit. Browser interaction is a separate observed check.
 
-The [first GitHub Actions run](https://github.com/TheOutlandsDev/workfloor/actions/runs/40407181415) completed successfully on 26 October 2026 at source commit `f645e9a0200020ff356f3f891be931aa933ef7d8`. Its Windows Server 2025 runner used Python 3.12.10 and SQLite 3.49.1. All **21 existing tests passed**, with no skips, in 3.362 seconds. The fresh-database entry-point check also passed for both the Python CLI and Windows batch launcher; their complete reports were identical. The README badge was added after this successful run.
+## Observed browser workflow
 
-The [workflow](../.github/workflows/verify.yml) runs on push, pull request and manual dispatch. It has read-only repository permissions and pins the checkout/setup actions to full commit IDs. The [entry-point script](../scripts/verify_entry_points.py) creates two separate disposable databases in checkout-local directories with spaces, runs from outside the project working directory, and checks the expected totals, reference agreement and intentional join inflation. It runs the launcher with `--demo-report`; it does not automate a browser or qualify other operating systems. No application dependencies are installed.
+The actual local application was checked in the in-app browser on Windows:
 
-The [80-second walkthrough](WALKTHROUGH.md) documents another actual browser session with invented data. It shows the delayed filter, replay evidence, 26-versus-9 validation, both SQL tabs, a snapshot save, and the preserved snapshot after interrupting and restarting the app. It is an edited sequence of real application captures with captions, rather than continuous screen recording. The interruption's exit code was 1; it is not graceful-shutdown or power-loss evidence.
+1. Saved baseline snapshot **916d6070…** at **23:16:02 UTC**, showing 9 orders / 365 units / 4 delayed.
+2. Loaded the error sample and previewed it. All three records were blocked; row-level validation messages were visible, and Apply was disabled.
+3. Selected the valid synthetic CSV through the file picker. Changing files cleared the old preview and required the invented-data confirmation again.
+4. Previewed three valid records. The source was unchanged until Apply.
+5. Applied them at **23:28:34 UTC**, adding **3 orders / 2 completion events**. The current report refreshed to **12 orders / 440 units / 6 delayed / 2 review / 4 on time**, matching the independent reference. The wrong join returned **29 rows / 1,270 units**.
+6. Saved snapshot **31d9bcbf…** at **23:30:19 UTC**. Interrupted/restarted the owned app using the same data directory; it reported reopening the existing database.
+7. Reopened the earlier snapshot through the UI: **9 orders / 4 delayed**, labeled SAVED SNAPSHOT, with its original SQL and fingerprint. The current source still contained the imported orders.
 
-## Observed result
+The process interruption returned exit code 1. This demonstrates persistence after that interruption, not graceful-shutdown or power-loss recovery.
 
-For `[2026-10-01T00:00:00Z, 2026-10-08T00:00:00Z)`:
+The error preview initially clipped detailed validation at the right edge of its table. Row-level issue cards were added above the table so errors can be read without horizontal scrolling. Both **390 px (375 px client width)** and **320 px (305 px client width)** matched their page scroll width after the fix; tables retain their own scroll regions. These are browser-emulated layouts, not physical phones.
 
-| Measure | Observed |
-| --- | ---: |
-| Work orders | 9 |
-| Units represented by those orders | 365 |
-| Delayed | 4 |
-| Completed late / open at cutoff | 1 / 3 |
-| Needs review | 2 |
-| Completed on time | 3 |
-| Naïve joined rows / units | 26 / 1,195 |
-| Inflated row count detected | +17 |
+Actual captures: [valid preview](screenshots/import-valid-preview.jpg), [rejected file](screenshots/import-errors.jpg), [current report after import](screenshots/report-after-import.jpg), [preserved baseline snapshot](screenshots/preserved-snapshot.jpg), [phone layout](screenshots/phone-import.jpg).
 
-## Browser workflow
+The import receipt button was enabled; downloaded receipt bytes were not independently inspected. The backend receipt fields were checked over real HTTP.
 
-The actual Python application was opened in the in-app browser on Windows. Its default report and validation messages matched the backend result. Observed checks included:
+## Reproduce and inspect
 
-- Delayed filter displayed exactly four orders.
-- Conflicting-event inspector showed both `EV-11` timestamps and the review explanation.
-- Empty November range displayed a clear empty state and did not label the naïve query correct.
-- Reversed date range displayed a validation error and disabled saving the changed range.
-- Both SQL tabs displayed the corresponding source query and bound values.
-- A snapshot was saved through the UI, reopened, exported as JSON, and checked for the expected metrics and validation result.
-- The owned server process was interrupted and restarted with the same database. It reported reopening the database; the browser still listed and reopened the same saved snapshot. The tool interruption returned exit code 1, so this is persistence-after-interruption evidence, not proof of graceful shutdown or power-loss recovery.
-- Desktop layout and 390-pixel phone layout were inspected. The hidden table heading initially caused page overflow at phone width; its containing block was fixed. The order table retained its own horizontal scroll, and a focused-panel arrow key moved it by 40 pixels.
+See [CSV format and workflow](IMPORTS.md), [design decisions](DECISIONS.md), and [machine-readable v0.2 record](verification-v0.2.0.json). A new database still reproduces the original **9 orders / 365 units / 4 delayed**, with **26 rows / 1,195 units** in the deliberately wrong join.
 
-The final 320-pixel layout check also passed: page scroll width equaled its 305-pixel client width. At 390 pixels, both were 375 pixels; at the 1280-pixel desktop breakpoint, both were 1265 pixels. Tables and SQL retain their own scroll regions. Screenshots in `screenshots/` are actual UI captures using invented data. The extracted-release check is recorded in `verification.json`.
+The [v0.1 validation record](VALIDATION-v0.1.0.md), [original machine-readable record](verification.json), and [80-second v0.1 reporting walkthrough](WALKTHROUGH.md) remain historical evidence. The video does not demonstrate CSV imports.
 
-The Copy SQL success message was observed, but the browser tool's separate clipboard view did not reflect the page's clipboard write. Copied clipboard bytes are not independently verified by this check.
+## Limits
 
-## Limits of the check
+This is a single-user local prototype using invented records. No employer source, schema or operational records were used. Imports add new orders only, with no updates, deletes, partial-success mode, persistent import-history screen or undo-import UI. Receipts can be downloaded during the browser session. A saved report is not a database backup or a tamper-proof audit log.
 
-Browser emulation is not physical-phone testing. The test set is bounded synthetic evidence rather than production qualification. Linux/macOS execution, public hosting, multi-user access, accessibility conformance, independent security review, large data, power-loss recovery and long-running operation were not tested. No workplace source or system was used.
+The cutoff remains an event-time view over current source, not a reconstruction of historical knowledge. Linux/macOS execution, public backend hosting, multi-user behavior, accessibility conformance, penetration testing, large datasets, power-loss recovery and long-running operation remain unqualified.

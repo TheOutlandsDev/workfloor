@@ -1,0 +1,73 @@
+{
+  "version": "0.2.0",
+  "date": "2026-10-26",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "python": "3.12.7",
+  "sqlite": "3.45.3",
+  "automated": {
+    "tests_passed": 39,
+    "skipped": 0,
+    "seconds": 4.257,
+    "original_tests_retained": 21,
+    "new_import_tests": 18,
+    "entry_points": "both fresh-database CLI and Windows launcher checks passed",
+    "javascript_syntax": "both scripts passed"
+  },
+  "browser": {
+    "actual_application": true,
+    "data": "original invented work orders",
+    "file_picker_valid_csv": true,
+    "invalid_sample_blocked": true,
+    "valid_import_orders": 3,
+    "valid_import_completion_events": 2,
+    "post_import_metrics": {
+      "orders": 12,
+      "units": 440,
+      "delayed": 6,
+      "completed_late": 2,
+      "open_overdue": 4,
+      "on_time": 4,
+      "review": 2
+    },
+    "post_import_validation": {
+      "correct_matches_reference": true,
+      "expected_orders": 12,
+      "expected_units": 440,
+      "naive_orders": 29,
+      "naive_units": 1270,
+      "inflation_detected": true,
+      "extra_joined_rows": 17
+    },
+    "source_fingerprint_after": "c84f2087f8747c9d7d87dea2eefd5ca884f4e8c274f37d053782e3713341f2ba",
+    "snapshots": [
+      {
+        "id": "31d9bcbf9c3f4df3a5779ec5231d3f19",
+        "orders": 12,
+        "delayed": 6,
+        "dataset_sha256": "c84f2087f8747c9d7d87dea2eefd5ca884f4e8c274f37d053782e3713341f2ba"
+      },
+      {
+        "id": "916d607068ab4e489861ff25a56b677a",
+        "orders": 9,
+        "delayed": 4,
+        "dataset_sha256": "aaa7e4677f215de750cff24cfa315ccaa9d2b15d2c5cce7fc96c4c3bef6126d5"
+      }
+    ],
+    "restart_and_old_snapshot_reopening": true,
+    "interruption_exit_code": 1,
+    "receipt_download_bytes_independently_checked": false
+  },
+  "responsive": [
+    {
+      "viewport": 390,
+      "client": 375,
+      "scroll_width": 375
+    },
+    {
+      "viewport": 320,
+      "client": 305,
+      "scroll_width": 305
+    }
+  ],
+  "scope": "Windows local prototype and synthetic data only. Browser steps are observed separately from CI. No graceful-shutdown, power-loss, production, public backend or other-platform qualification."
+}

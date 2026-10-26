@@ -1,6 +1,7 @@
 {
-  "version": "0.1.0",
+  "version": "0.2.0",
   "synthetic": true,
+  "dataset_orders": 12,
   "start": "2026-10-01",
   "end": "2026-10-08",
   "parameters": {
