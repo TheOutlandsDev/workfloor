@@ -1,0 +1,24 @@
+{
+  "duration_seconds": 80,
+  "width": 1280,
+  "height": 900,
+  "fps": 25,
+  "codec": "h264",
+  "audio": false,
+  "capture_date": "2026-10-26",
+  "format": "Edited step walkthrough assembled from actual application screenshots; not a continuous screen recording",
+  "source_commit": "f645e9a0200020ff356f3f891be931aa933ef7d8",
+  "dataset_sha256": "aaa7e4677f215de750cff24cfa315ccaa9d2b15d2c5cce7fc96c4c3bef6126d5",
+  "snapshot_id_prefix": "a6e66719",
+  "bytes": 921545,
+  "sha256": "c1bcf4fff6c9b80e452104e1bf8fbb21527779c18d279731054554c4cb614cf8",
+  "frames": {
+    "01-overview.jpg": "26345632e8892f348b5d0a80329b47029f9f9db4aacae7fa92f1cc2896c22dcd",
+    "02-delayed.jpg": "fd0009d4ea6e05a23470d4c80753d4ccaf7252afbd6b67c5bd59c2a4beda026b",
+    "03-evidence.jpg": "7793605a35e271e98d0ac9040d59887924a4b9e7cd9c091e4ef1de9ed3e640b6",
+    "04-naive-sql.jpg": "044ae0efcd42fce63b6c87ae91eecd41af8d9ee89f2957a26817dc8da2fd7030",
+    "05-correct-sql.jpg": "8682f485af1905ef1c4bb1f39cc562550be455faf81193f385fd504c39c02d10",
+    "06-saved.jpg": "8cb0dde8339fbafc89ea69da8ae0fcf192681569252494de630fcb50b2f7714c",
+    "08-reopened.jpg": "f71b9e0241acad2bc737649fc5e381644577d7e659e572d17a7f88fe8b950499"
+  }
+}

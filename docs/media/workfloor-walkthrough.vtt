@@ -1,0 +1,41 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:10.000
+01 / SELECT A DUE-DATE RANGE
+Choose UTC due dates. The end boundary is exclusive.
+Default range: 1-8 October 2026. Every manufacturing record is invented.
+
+00:00:10.000 --> 00:00:20.000
+02 / FIND THE FOUR DELAYED ORDERS
+Show = Delayed narrows the nine-order cohort to four work orders.
+One completed late; three were still open at the cutoff. Two review cases stay separate.
+
+00:00:20.000 --> 00:00:30.000
+03 / INSPECT THE COMPLETION EVIDENCE
+WO-1002 completed after its due time. Both copies of EV-02 remain visible.
+The identical replay is collapsed for classification, without changing the source rows.
+
+00:00:30.000 --> 00:00:40.000
+04 / CATCH THE 26-VERSUS-9 JOIN ERROR
+The independent reference confirms nine orders. The deliberate bad join counts 26 rows.
+Validation catches 17 extra rows and 1,195 units instead of the correct 365.
+
+00:00:40.000 --> 00:00:50.000
+05 / READ THE QUERY THAT FAILS
+Joining raw process steps and completion events multiplies one-to-many relationships.
+COUNT(*) then counts joined rows instead of work orders. This query is intentionally wrong.
+
+00:00:50.000 --> 00:01:00.000
+06 / GROUP BEFORE JOINING
+The corrected SQL reduces events and steps before joining one row per work order.
+Validated dates are bound separately. A procedural Python reference checks the result.
+
+00:01:00.000 --> 00:01:10.000
+07 / SAVE A SNAPSHOT TO SQLITE
+Save snapshot stores the report results, evidence, parameters and SQL text together.
+The dataset fingerprint is checked again during the save transaction.
+
+00:01:10.000 --> 00:01:20.000
+08 / REOPEN THE PRESERVED RESULT
+After interrupting and restarting the app with the same data directory, open the snapshot.
+The interface identifies the frozen result as SAVED SNAPSHOT. A snapshot is not a backup.

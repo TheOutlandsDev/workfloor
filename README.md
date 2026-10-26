@@ -1,10 +1,14 @@
 # Workfloor — Manufacturing & SQL Reporting Workbench
 
+[![Verify Workfloor](https://github.com/TheOutlandsDev/workfloor/actions/workflows/verify.yml/badge.svg?branch=main&event=push)](https://github.com/TheOutlandsDev/workfloor/actions/workflows/verify.yml)
+
 **A runnable local prototype using entirely invented manufacturing data.** Choose a due-date range, identify delayed work orders, inspect their completion evidence, and watch validation catch a join that inflates the count.
 
 Built with Python's standard library, SQLite, and plain HTML/CSS/JavaScript. No package installation, account, hosted API, or employer system is needed.
 
 [Download v0.1.0](https://github.com/TheOutlandsDev/workfloor/releases/download/v0.1.0/workfloor-0.1.0.zip) · [Portfolio case study](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/#workfloor) · [Release notes](docs/RELEASE.md)
+
+[Watch the 80-second walkthrough](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/#workfloor-walkthrough) · [MP4](docs/media/workfloor-walkthrough.mp4) · [Transcript and capture notes](docs/WALKTHROUGH.md). Captioned steps from actual application captures, using synthetic data; edited timing and no audio.
 
 ![Actual prototype, synthetic dataset](docs/screenshots/overview.jpg)
 
@@ -85,6 +89,18 @@ python app.py --demo-report --data-dir ./cli-demo
 ```
 
 The CLI emits the same JSON report used by the interface. Tests create and remove their own `.test-tmp/case-*` directories inside this checkout. They use synthetic data and actual SQLite/HTTP operations.
+
+### Automatic verification
+
+[Verify Workfloor](.github/workflows/verify.yml) runs on **every push and pull request**, and can also be started manually. Its Windows job sets up Python 3.12, records the Python/SQLite versions, runs the 21 existing tests, and exercises both `app.py --demo-report` and `start-workfloor.cmd --demo-report` against separate fresh databases. The entry-point check runs outside the project working directory with spaces in the data paths; both reports must match the expected totals, independent reference and deliberate 26-versus-9 join error.
+
+The [first hosted run passed](https://github.com/TheOutlandsDev/workfloor/actions/runs/40407181415) on Windows Server 2025, Python 3.12.10 and SQLite 3.49.1. The badge was added after that success. CI checks backend behavior and command-line entry points; the browser walkthrough is a separate observed check.
+
+To repeat the entry-point check from a **current source checkout on Windows**:
+
+```console
+python scripts/verify_entry_points.py
+```
 
 ## Current limits
 

@@ -11,6 +11,14 @@ The tests use real SQLite files and loopback HTTP servers. They cover manually a
 
 An initial run could not use the desktop sandbox's redirected OS temp directory. Disposable fixtures were moved to the checkout-local `.test-tmp` directory. A test setup connection was also explicitly closed to release its Windows file handle before cleanup. Neither failure was counted as a passing application test. The final complete run passed.
 
+## Automatic verification
+
+The [first GitHub Actions run](https://github.com/TheOutlandsDev/workfloor/actions/runs/40407181415) completed successfully on 26 October 2026 at source commit `f645e9a0200020ff356f3f891be931aa933ef7d8`. Its Windows Server 2025 runner used Python 3.12.10 and SQLite 3.49.1. All **21 existing tests passed**, with no skips, in 3.362 seconds. The fresh-database entry-point check also passed for both the Python CLI and Windows batch launcher; their complete reports were identical. The README badge was added after this successful run.
+
+The [workflow](../.github/workflows/verify.yml) runs on push, pull request and manual dispatch. It has read-only repository permissions and pins the checkout/setup actions to full commit IDs. The [entry-point script](../scripts/verify_entry_points.py) creates two separate disposable databases in checkout-local directories with spaces, runs from outside the project working directory, and checks the expected totals, reference agreement and intentional join inflation. It runs the launcher with `--demo-report`; it does not automate a browser or qualify other operating systems. No application dependencies are installed.
+
+The [80-second walkthrough](WALKTHROUGH.md) documents another actual browser session with invented data. It shows the delayed filter, replay evidence, 26-versus-9 validation, both SQL tabs, a snapshot save, and the preserved snapshot after interrupting and restarting the app. It is an edited sequence of real application captures with captions, rather than continuous screen recording. The interruption's exit code was 1; it is not graceful-shutdown or power-loss evidence.
+
 ## Observed result
 
 For `[2026-10-01T00:00:00Z, 2026-10-08T00:00:00Z)`:
