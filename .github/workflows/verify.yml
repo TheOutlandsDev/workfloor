@@ -29,7 +29,8 @@ jobs:
       - name: Check fresh-database CLI and Windows launcher
         run: python scripts/verify_entry_points.py
       - name: Install locked browser-test dependencies
-        run: python -m pip install --require-hashes --only-binary=:all: -r requirements-browser-windows.txt
+        run: >-
+          python -m pip install --require-hashes --only-binary=:all: -r requirements-browser-windows.txt
       - name: Verify browser workflow and read-only demo
         id: browser
         run: python scripts/run_browser_checks.py --install-browser
