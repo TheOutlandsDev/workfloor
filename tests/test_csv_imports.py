@@ -288,7 +288,12 @@ class ImportHTTPCase(ImportBase):
             self.assertEqual(status, 200)
             self.assertTrue(body.startswith(b"order_id,product"))
         self.assertEqual(self.request("GET", "/examples/../workbench.py")[0], 404)
-        self.assertEqual(self.request("POST", "/api/imports/preview", {"csv_text": "x" * (2 * 1024 * 1024), "synthetic": True})[0], 413)
+        # The server rejects an oversized Content-Length before reading a body.
+        # Sending megabytes anyway races its close with Windows TCP resets.
+        before = self.state()
+        headers = {**self.headers, "Content-Length": str(2 * 1024 * 1024 + 1)}
+        self.assertEqual(self.request("POST", "/api/imports/preview", headers=headers)[0], 413)
+        self.assertEqual(self.state(), before)
 
 
 if __name__ == "__main__":
