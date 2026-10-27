@@ -1,0 +1,25 @@
+{
+  "import_id": "04ff498d759c4a03a4da5d6ad500dc9e",
+  "imported_at": "2026-10-27T00:30:07Z",
+  "orders_added": 3,
+  "completion_events_added": 2,
+  "csv_sha256": "c050d0b4727f70dd38b8953703fee3acc20ef4bf11eb710e75cadb906b24260e",
+  "dataset_sha256_before": "aaa7e4677f215de750cff24cfa315ccaa9d2b15d2c5cce7fc96c4c3bef6126d5",
+  "dataset_sha256_after": "5fccc0b61888b190eb577cdddf86710b1cb99219c099a436139a1fa3eb6bae8a",
+  "order_ids": [
+    "DEMO-2001",
+    "DEMO-2002",
+    "DEMO-2003"
+  ],
+  "default_report_metrics": {
+    "orders": 12,
+    "units": 440,
+    "delayed": 6,
+    "completed_late": 2,
+    "open_overdue": 4,
+    "on_time": 4,
+    "review": 2
+  },
+  "default_report_matches_reference": true,
+  "policy": "All rows must pass. Add new orders only; no updates, deletes or partial imports."
+}

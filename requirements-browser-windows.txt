@@ -1,0 +1,6 @@
+# Browser-test dependencies only. Windows x64 / CPython 3.12 wheels.
+# Generated from the official PyPI resolver report; the app still uses only the standard library.
+greenlet==3.5.6 --hash=sha256:7ac4abb3877c43af320392c664774eef6fa2cc063c79a55fc02d844a3cbe7395
+playwright==1.64.1 --hash=sha256:5e240a79464434c9260957b9ef59a5808e02e96e3fcabdc717fd7485260b9730
+pyee==14.0.0 --hash=sha256:3ac2d3229a9677f7de2c33d7f52fe25b638a46b19c413fea2edc8c6d0a644e4d
+typing_extensions==4.16.0 --hash=sha256:481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8

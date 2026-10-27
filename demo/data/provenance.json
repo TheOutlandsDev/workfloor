@@ -1,0 +1,39 @@
+{
+  "format_version": 1,
+  "synthetic_only": true,
+  "description": "Actual browser-downloaded frozen exports from the verified local Workfloor workflow. Read-only browser adaptation; no SQL runs in the viewer.",
+  "captured_at": "2026-10-27T00:30:08+00:00",
+  "runtime_version": "0.2.0",
+  "runtime_ref": "v0.2.0",
+  "runtime_commit": "175e40332afc450e7c73872dd3497a982035dc1b",
+  "runtime_source": "https://github.com/TheOutlandsDev/workfloor/tree/v0.2.0",
+  "csv_source": "https://github.com/TheOutlandsDev/workfloor/blob/v0.2.0/examples/import-valid.csv",
+  "csv_sha256": "c050d0b4727f70dd38b8953703fee3acc20ef4bf11eb710e75cadb906b24260e",
+  "files": {
+    "baseline.json": "b391e134b5465242ccc84f3755fb4050527943eb6553c745190dea33c9cd8be2",
+    "after-import.json": "deaebb0687b3f1adbe115f49794445cca2a8b274dd4e3db507df6fca8f967d3b",
+    "receipt.json": "6efab9a8b0bbf581768a0c028c3bed3d3fa2ea8ed97c50988c950194e269462e"
+  },
+  "browser": "156.0.8078.4",
+  "python": "3.12.7",
+  "sqlite": "3.45.3",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "runtime_files": {
+    "app.py": "3ecababe56332696c6d6d55bcf84d1cefa77e97e4f559665b9778b93e962063d",
+    "csv_imports.py": "7bb2d628989eb3df075c10b244350c41aa1c73dad80734a95a3d14fa78faa1dd",
+    "fixtures/synthetic.json": "e170f96cf8c64f40e2f1e4ef2d93554553a42ac4d6c1eacf6d376e309f1ef59b",
+    "sql/naive_join.sql": "691134fc448dec5e8483ce0a7e0d507bcde0566f4dde9e28bb7b1fb82ae88be4",
+    "sql/report.sql": "792d0e3afb2b1beb5328df93a93816dbf7e84f36a0fb3b60df5a096d81fa1f0d",
+    "sql/schema.sql": "f87fd294013287a999b5368886073fdca18e07053cacdea9824417ef4904bb50",
+    "static/app.js": "5497ca1c348d592742487cd23ea7164c8794fdfe0a76f6af7eab3d248790f64d",
+    "static/imports.js": "eadeb261c2a3f80b8e29137ef9d53020f5c69237ec28d7de3a5f653c14d2484d",
+    "static/index.html": "ef7dc26a5f940e046067b877feb1dd16b5f2fa015087372f63a4ddaf5b368b05",
+    "static/mark.svg": "d4771170d39a44cef8421198f43f1e8b0a2f8dcd63ad2814f7c2d1ffdf386093",
+    "static/style.css": "e8f22ec9cbdebed5f47532bbf7fcb686439176f615f7420c4e717eee6dc14ff2",
+    "workbench.py": "9d1e7b95da7595db29f1dac1afed9d829189e053897db0b4da7dbc3d712c5453"
+  },
+  "checks": {
+    "receipt_download_verified": true,
+    "earlier_export_byte_identical_after_reload": true
+  }
+}

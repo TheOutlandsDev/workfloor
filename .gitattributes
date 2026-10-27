@@ -1,0 +1,3 @@
+# Preserve the exact CSV/export bytes used by receipt and provenance checks.
+examples/*.csv -text
+demo/data/*.json -text

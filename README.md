@@ -6,7 +6,9 @@
 
 Built with Python's standard library, SQLite, and plain HTML/CSS/JavaScript. No package installation, account, hosted API, or employer system is needed.
 
-[Download v0.2.0](https://github.com/TheOutlandsDev/workfloor/releases/download/v0.2.0/workfloor-0.2.0.zip) · [Portfolio case study](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/#workfloor) · [Release notes](docs/RELEASE.md)
+[Explore sample reports — no installation](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/demos/workfloor/) · [Download v0.2.0](https://github.com/TheOutlandsDev/workfloor/releases/download/v0.2.0/workfloor-0.2.0.zip) · [Portfolio case study](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/#workfloor) · [Release notes](docs/RELEASE.md)
+
+The browser sample uses actual frozen exports from the tested application. Filter orders, inspect source evidence and recorded SQL, compare before/after, or download a report. It is read-only: SQL execution, CSV imports and saving snapshots require the local Python application. See [sample provenance and scope](docs/BROWSER-DEMO.md).
 
 [Watch the 80-second walkthrough](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/#workfloor-walkthrough) · [MP4](docs/media/workfloor-walkthrough.mp4) · [Transcript and capture notes](docs/WALKTHROUGH.md). Captioned steps from actual application captures, using synthetic data; edited timing and no audio.
 
@@ -91,7 +93,7 @@ For recovery after an interrupted run, restart with the same `--data-dir`. For a
 
 ## Validation and status
 
-**v0.2 local prototype · Windows runtime checked · 39 automated tests passed with no skips.** The browser workflow, JSON download, process restart and saved-snapshot reopening were observed on 26 October 2026. Desktop and phone-width checks use browser emulation, not physical phones.
+**v0.2 local prototype · Windows runtime checked · 39 backend tests and 2 Chromium browser tests passed locally with no skips.** Current source automates the complete CSV/report workflow, verifies downloaded receipt bytes, and confirms the earlier saved export is byte-identical after a page reload. The original v0.2 manual check separately covered a process interruption/restart. Desktop and phone-width checks use browser emulation, not physical phones.
 
 See [actual validation and limitations](docs/VALIDATION.md), [design decisions](docs/DECISIONS.md), [v0.2 machine-readable verification](docs/verification-v0.2.0.json), and the [example report](examples/default-report.json).
 
@@ -104,15 +106,17 @@ The CLI emits the same JSON report used by the interface. Tests create and remov
 
 ### Automatic verification
 
-[Verify Workfloor](.github/workflows/verify.yml) runs on **every push and pull request**, and can also be started manually. Its Windows job sets up Python 3.12, records the Python/SQLite versions, runs the complete suite (currently 39 tests, including the original 21), and exercises both `app.py --demo-report` and `start-workfloor.cmd --demo-report` against separate fresh databases. The entry-point check runs outside the project working directory with spaces in the data paths; both reports must match the expected totals, independent reference and deliberate 26-versus-9 join error.
+[Verify Workfloor](.github/workflows/verify.yml) runs on **every push and pull request**, and can also be started manually. Its Windows job sets up Python 3.12, records runtime versions, runs 39 backend tests (including the original 21), exercises both command-line entry points against separate fresh databases, and runs two Chromium browser tests. The entry-point check runs outside the project working directory with spaces in the data paths; both reports must match the expected totals, independent reference and deliberate 26-versus-9 join error.
 
-The [first hosted run passed](https://github.com/TheOutlandsDev/workfloor/actions/runs/40407181415) on Windows Server 2025, Python 3.12.10 and SQLite 3.49.1. The badge was added after that success. CI checks backend behavior and command-line entry points; the browser walkthrough is a separate observed check.
+The application browser test saves a baseline, blocks an invalid CSV, checks changed-file invalidation, imports the valid sample, verifies the downloaded receipt, saves the 12-order result, reloads and downloads the preserved 9-order snapshot byte for byte. The second test checks the read-only viewer, frozen-export hashes, filters, evidence dialog, SQL tabs, report download and phone widths. Browser verification records are retained for 14 days; failures also retain a screenshot and an action trace without network/DOM snapshots. See [browser checks and diagnostics](docs/BROWSER-CHECKS.md) for reproduction and limits, and [Actions](https://github.com/TheOutlandsDev/workfloor/actions/workflows/verify.yml) for each commit's hosted result.
 
 To repeat the entry-point check from a **current source checkout on Windows**:
 
 ```console
 python scripts/verify_entry_points.py
 ```
+
+Browser testing has separate, hash-locked developer dependencies. The local application still uses only Python's standard library. These browser tools and the static sample viewer are available in the current source checkout; the original v0.2.0 release ZIP and tag remain unchanged.
 
 ## Current limits
 
