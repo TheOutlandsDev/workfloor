@@ -15,7 +15,7 @@ import uuid
 ROOT = Path(__file__).resolve().parent
 APP_ID = 1297564209
 DEFAULT_START, DEFAULT_END = "2026-10-01", "2026-10-08"
-VERSION = "0.4.0"
+VERSION = "0.4.1"
 SCHEMA_VERSION = 2
 STATUS_LABELS = {
     "on_time": "Completed on time", "completed_late": "Completed late",

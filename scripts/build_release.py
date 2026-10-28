@@ -8,7 +8,7 @@ import subprocess
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = '0.4.0'
+VERSION = '0.4.1'
 NAMES = (
     '.gitattributes',
     '.github/workflows/recovery-release.yml',
@@ -88,6 +88,7 @@ NAMES = (
     'migrate.py',
     'docs/IMPORT-HISTORY.md',
     'docs/RELEASE-v0.3.1.md',
+    'docs/RELEASE-v0.4.0.md',
     'docs/VALIDATION-v0.3.1.md',
     'e2e/test_import_history.py',
     'examples/import-history-case.json',

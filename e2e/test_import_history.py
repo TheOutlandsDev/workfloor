@@ -30,6 +30,16 @@ class ImportHistoryWorkflow(BrowserCase):
             self.assertEqual('committed', first['status'])
             page.locator('#import-history-list').get_by_role('button', name='View receipt ↗', exact=True).click()
             expect(page.locator('#import-receipt-dialog')).to_be_visible()
+            colors = page.locator('#import-receipt-details').evaluate("node => {const s=getComputedStyle(node);return [s.color,s.backgroundColor]}")
+            import re
+            def luminance(color):
+                rgb = [int(v)/255 for v in re.findall(r'\d+', color)[:3]]
+                self.assertEqual(len(rgb), 3)
+                channels = [v/12.92 if v <= .04045 else ((v+.055)/1.055)**2.4 for v in rgb]
+                return sum(v*w for v,w in zip(channels,[.2126,.7152,.0722]))
+            levels = sorted(map(luminance,colors))
+            self.assertGreaterEqual((levels[1]+.05)/(levels[0]+.05),4.5)
+
             expect(page.locator('#import-receipt-details')).to_contain_text(first['import_id'])
             page.locator('#close-import-receipt').click()
             original.shutdown(); original.server_close()

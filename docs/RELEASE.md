@@ -1,6 +1,6 @@
-# Workfloor 0.4.0 - durable import history
+# Workfloor 0.4.1 - durable import history
 
-[Download ZIP](https://github.com/TheOutlandsDev/workfloor/releases/download/v0.4.0/workfloor-0.4.0.zip)
+[Download ZIP](https://github.com/TheOutlandsDev/workfloor/releases/download/v0.4.1/workfloor-0.4.1.zip)
 [Upgrade guide](IMPORT-HISTORY.md) | [Validation](VALIDATION.md)
 
 CSV orders, completion events and their complete JSON receipt now commit in one
@@ -48,3 +48,11 @@ system, production integration, macOS execution, multi-user service, hostile-wri
 isolation or power-loss guarantee is represented. Browser is disabled locally;
 new local visual acceptance is not claimed. Historical captures remain v0.2.
 The earlier v0.3.1 release and its [notes](RELEASE-v0.3.1.md) remain unchanged.
+
+
+Patch 0.4.1 gives the stored-receipt JSON explicit dark text and a light background,
+fixing the low-contrast inherited SQL text style found during actual capture review.
+It also corrects the sidebar version and removes a stale version from the insert-only
+feature label. No database schema or receipt-storage behavior changes. The 0.4.0
+release and its [notes](RELEASE-v0.4.0.md) remain unchanged. Capture and walkthrough
+sources are separate from the downloadable application source inventory.

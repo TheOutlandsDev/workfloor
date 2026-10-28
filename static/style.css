@@ -14,3 +14,5 @@ th{position:relative}
 @media(max-width:760px){.import-issues{grid-template-columns:minmax(0,1fr);gap:22px;padding:20px}}
 
 .import-history-actions{display:flex;gap:12px;flex-wrap:wrap}.import-history-actions button{min-height:44px}#import-receipt-details{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.7;max-height:55vh;overflow:auto}#import-history-message{font-size:13px;color:var(--muted);margin:20px 0}
+
+#import-receipt-details{color:var(--ink);background:#f1f5f3;border:1px solid var(--line);border-radius:6px;padding:18px}

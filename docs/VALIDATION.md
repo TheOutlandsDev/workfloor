@@ -48,3 +48,8 @@ manually. Only trusted local DELETE-journal databases up to 64 MiB are supported
 There is no employer/MES integration, general migration engine or multi-user service.
 Backup/restore preserves SQLite, not separately saved CSV or downloaded files.
 Migration preserves a verified old-format backup before changing the original.
+
+
+Patch 0.4.1 changes receipt text/background styles and stale display labels only.
+The hosted receipt workflow also checks the rendered foreground/background contrast
+before accepting the dialog. This focused check is not an accessibility-conformance claim.
