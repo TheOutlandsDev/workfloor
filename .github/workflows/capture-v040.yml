@@ -1,0 +1,36 @@
+name: Capture published Workfloor v0.4.0
+on:
+  push:
+    branches: [demo-v040-20261028]
+    paths: [scripts/capture_v040.py, .github/workflows/capture-v040.yml]
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      PYTHONUTF8: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Install the existing locked browser development dependencies
+        run: python -m pip install --require-hashes --only-binary=:all: -r requirements-browser-windows.txt
+      - name: Install Chromium for the isolated capture
+        run: python -m playwright install chromium
+      - name: Verify the release and exercise import, restart and restore in its real UI
+        run: python -B scripts/capture_v040.py --output "${{ github.workspace }}/docs/media/v0.4-captures"
+      - name: Stage only reviewed synthetic capture outputs on a separate branch
+        shell: pwsh
+        run: |
+          git config user.name TheOutlandsDev
+          git config user.email TheOutlandsDev@users.noreply.github.com
+          git add -- docs/media/v0.4-captures/01-baseline.jpg docs/media/v0.4-captures/02-valid-preview.jpg docs/media/v0.4-captures/03-import-history.jpg docs/media/v0.4-captures/04-receipt.jpg docs/media/v0.4-captures/05-after-restart.jpg docs/media/v0.4-captures/06-after-restore.jpg docs/media/v0.4-captures/capture.json
+          git commit -m "Record verified synthetic v0.4 interface captures"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git push origin "HEAD:refs/heads/capture-v040-$env:GITHUB_SHA"
