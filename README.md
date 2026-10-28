@@ -6,7 +6,7 @@
 
 Built with Python's standard library, SQLite, and plain HTML/CSS/JavaScript. No package installation, account, hosted API, or employer system is needed.
 
-[Explore sample reports — no installation](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/demos/workfloor/) · [Download v0.4.1](https://github.com/TheOutlandsDev/workfloor/releases/download/v0.4.1/workfloor-0.4.1.zip) · [Portfolio case study](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/#workfloor) · [Release notes](docs/RELEASE.md)
+[Explore sample reports — no installation](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/demos/workfloor/) · [Source ZIP v0.4.1](https://github.com/TheOutlandsDev/workfloor/releases/download/v0.4.1/workfloor-0.4.1.zip) · [Portfolio case study](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/#workfloor) · [Release notes](docs/RELEASE.md)
 
 The browser sample uses actual frozen exports from the tested application. Filter orders, inspect source evidence and recorded SQL, compare before/after, or download a report. It is read-only: SQL execution, CSV imports and saving snapshots require the local Python application. See [sample provenance and scope](docs/BROWSER-DEMO.md).
 
@@ -19,6 +19,14 @@ Actual v0.4.1 UI captures show CSV preview, persistent receipts, a real app-proc
 ![Current v0.4.1: three valid invented orders previewed before import](https://raw.githubusercontent.com/TheOutlandsDev/workfloor/main/docs/media/v0.4.1-captures/02-valid-preview.jpg)
 
 ![Current v0.4.1: persistent import history with a stored receipt](https://raw.githubusercontent.com/TheOutlandsDev/workfloor/main/docs/media/v0.4.1-captures/03-import-history.jpg)
+
+## Windows: extract and launch
+
+**[Download portable Windows x64](https://github.com/TheOutlandsDev/workfloor/releases/download/windows-v0.4.1-1/workfloor-0.4.1-windows-x64.zip)** — Python is included. Verify the ZIP against [SHA256SUMS.txt](https://github.com/TheOutlandsDev/workfloor/releases/download/windows-v0.4.1-1/SHA256SUMS.txt), choose **Extract All** into a new local folder, then **double-click Workfloor.cmd**. The local report opens in your browser; no Python installation, pip, administrator rights or PATH change is needed. Keep the console open and press Ctrl+C there to stop.
+
+Data persists outside the application under `%LOCALAPPDATA%\Outlands\Workfloor\data`. Relaunching reopens it; older source-download data is not moved or automatically upgraded. [Offline first-run and recovery instructions](https://github.com/TheOutlandsDev/workfloor/blob/windows-v0.4.1-1/portable/START-HERE.txt) · [Package contents, licenses and validation limits](https://github.com/TheOutlandsDev/workfloor/blob/windows-v0.4.1-1/docs/PORTABLE-WINDOWS.md) · [Public acceptance results](https://github.com/TheOutlandsDev/workfloor/releases/download/windows-v0.4.1-1/acceptance.json).
+
+The Windows portable download wraps unchanged v0.4.1 application source with the official CPython 3.14.10 runtime. Hosted Windows passed all 79 core tests and the bundled-process Chromium/import/restart/restore workflow. These checks establish runtime isolation; a manual Python-free-PC/Explorer test remains unperformed. The outer package is unsigned. The original source ZIP below remains available for other platforms and developers.
 
 ## Start here
 
