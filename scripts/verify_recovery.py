@@ -109,7 +109,7 @@ def run(workspace):
                           dict(stage='restored_baseline', metrics=before['metrics']), dict(stage='restored_imported', metrics=after['metrics'])],
                   imported_orders=3, imported_events=2, saved_snapshots=2,
                   restored_table_counts=manifest['database']['tables'], checks=checks)
-    (workspace / 'recovery-case.json').write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
+    (workspace / 'recovery-case.json').write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8', newline='\n')
     print(json.dumps(result))
 
 if __name__ == '__main__':
