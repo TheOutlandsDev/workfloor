@@ -1,4 +1,4 @@
-name: Capture published Workfloor v0.4.0
+name: Capture published Workfloor v0.4.1
 on:
   push:
     branches: [demo-v040-20261028]
@@ -25,13 +25,13 @@ jobs:
       - name: Install Chromium for the isolated capture
         run: python -m playwright install chromium
       - name: Verify the release and exercise import, restart and restore in its real UI
-        run: python -B scripts/capture_v040.py --output "${{ github.workspace }}/docs/media/v0.4-captures"
+        run: python -B scripts/capture_v040.py --output "${{ github.workspace }}/docs/media/v0.4.1-captures"
       - name: Stage only reviewed synthetic capture outputs on a separate branch
         shell: pwsh
         run: |
           git config user.name TheOutlandsDev
           git config user.email TheOutlandsDev@users.noreply.github.com
-          git add -- docs/media/v0.4-captures/01-baseline.jpg docs/media/v0.4-captures/02-valid-preview.jpg docs/media/v0.4-captures/03-import-history.jpg docs/media/v0.4-captures/04-receipt.jpg docs/media/v0.4-captures/05-after-restart.jpg docs/media/v0.4-captures/06-after-restore.jpg docs/media/v0.4-captures/capture.json
+          git add -- docs/media/v0.4.1-captures/01-baseline.jpg docs/media/v0.4.1-captures/02-valid-preview.jpg docs/media/v0.4.1-captures/03-import-history.jpg docs/media/v0.4.1-captures/04-receipt.jpg docs/media/v0.4.1-captures/05-after-restart.jpg docs/media/v0.4.1-captures/06-after-restore.jpg docs/media/v0.4.1-captures/capture.json
           git commit -m "Record verified synthetic v0.4 interface captures"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          git push origin "HEAD:refs/heads/capture-v040-$env:GITHUB_SHA"
+          git push origin "HEAD:refs/heads/capture-v041-$env:GITHUB_SHA"

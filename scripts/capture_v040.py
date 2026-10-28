@@ -1,4 +1,4 @@
-"""Capture the published v0.4.0 UI with fictional data on a Windows CI runner.
+"""Capture the published v0.4.1 UI with fictional data on a Windows CI runner.
 
 No runtime file is edited. The first isolated server substitutes a fixed import
 ID/time for repeatable synthetic fixtures; later servers use the stored receipt.
@@ -16,8 +16,8 @@ import tempfile
 import urllib.request
 import zipfile
 
-SOURCE = '7236dd2f1f827206d88ef37ba42e927d4daf748e'
-ZIP_SHA = 'ff17c2918e52975d32c14960fb765ffa7e1829e43c72cffcd1f1c08c6c5e7f97'
+SOURCE = '6a7a02ade5b01e1a6fc76f6e87a40ac7d2c24af6'
+ZIP_SHA = '3afa8d27afa818b3f8cd91cc2449f0ee7f964aedc2e24843650d8a55987da944'
 FILES = ('01-baseline.jpg', '02-valid-preview.jpg', '03-import-history.jpg',
          '04-receipt.jpg', '05-after-restart.jpg', '06-after-restore.jpg')
 
@@ -70,22 +70,22 @@ def running(release, data, fixed=False):
 
 def acquire(workspace):
     target = workspace / 'release.zip'
-    request = urllib.request.Request('https://github.com/TheOutlandsDev/workfloor/releases/download/v0.4.0/workfloor-0.4.0.zip', headers={'User-Agent': 'Workfloor-reproducible-capture'})
+    request = urllib.request.Request('https://github.com/TheOutlandsDev/workfloor/releases/download/v0.4.1/workfloor-0.4.1.zip', headers={'User-Agent': 'Workfloor-reproducible-capture'})
     with urllib.request.urlopen(request, timeout=60) as response: data = response.read()
     if digest(data) != ZIP_SHA: raise ValueError('Published release bytes differ')
     target.write_bytes(data)
     with zipfile.ZipFile(target) as archive:
-        prefix = 'workfloor-0.4.0/'
+        prefix = 'workfloor-0.4.1/'
         names = archive.namelist()
         if len(names) != len(set(names)) or any(not n.startswith(prefix) or '..' in n.split('/') or '\\' in n for n in names): raise ValueError('Unsafe release members')
         manifest = json.loads(archive.read(prefix + 'SOURCE-MANIFEST.json'))
-        if manifest['source_revision'] != SOURCE or manifest['version'] != '0.4.0': raise ValueError('Wrong release source')
+        if manifest['source_revision'] != SOURCE or manifest['version'] != '0.4.1': raise ValueError('Wrong release source')
         if set(names) != {prefix + r['path'] for r in manifest['files']} | {prefix + 'SOURCE-MANIFEST.json'}: raise ValueError('Unexpected release member')
         for row in manifest['files']:
             member = archive.read(prefix + row['path'])
             if len(member) != row['bytes'] or digest(member) != row['sha256']: raise ValueError('Release member differs')
         archive.extractall(workspace / 'extracted')
-    return workspace / 'extracted/workfloor-0.4.0'
+    return workspace / 'extracted/workfloor-0.4.1'
 
 
 def capture(output):
@@ -128,6 +128,15 @@ def capture(output):
                 if receipt['csv_sha256'] != digest((release/'examples/import-valid.csv').read_bytes()): raise ValueError('CSV hash differs')
                 page.locator('#import-history-list').get_by_role('button', name='View receipt ↗', exact=True).click()
                 expect(page.locator('#import-receipt-details')).to_contain_text(receipt['import_id'])
+                colors = page.locator('#import-receipt-details').evaluate("node => {const s=getComputedStyle(node);return [s.color,s.backgroundColor]}")
+                import re
+                def luminance(color):
+                    rgb = [int(v)/255 for v in re.findall(r'\d+',color)[:3]]
+                    channels = [v/12.92 if v<=.04045 else ((v+.055)/1.055)**2.4 for v in rgb]
+                    return sum(v*w for v,w in zip(channels,[.2126,.7152,.0722]))
+                levels=sorted(map(luminance,colors))
+                if (levels[1]+.05)/(levels[0]+.05)<4.5: raise ValueError('Receipt text contrast is insufficient')
+                checks.append('rendered_receipt_text_contrast_checked')
                 shot('#import-receipt-dialog', FILES[3]); page.locator('#close-import-receipt').click()
                 checks.append('stored_receipt_records_three_orders_two_events_and_input_hash')
             with running(release, data) as url:
@@ -150,14 +159,14 @@ def capture(output):
             checks.append('no_browser_javascript_errors')
             chromium = browser.version; context.close(); browser.close()
     if {p.name for p in output.iterdir()} != set(FILES): raise ValueError('Unexpected public output')
-    record = dict(schema=1, status='PASS', application_version='0.4.0', source_revision=SOURCE,
+    record = dict(schema=1, status='PASS', application_version='0.4.1', source_revision=SOURCE,
                   release_zip_sha256=ZIP_SHA, chromium=chromium, synthetic_only=True,
                   viewport=dict(width=1440,height=1000), capture_method='Real UI element screenshots from three isolated app processes on Windows CI; no DOM/CSS changes',
                   fixture_note='Only the first server substitutes a fictional fixed receipt ID and UTC time for repeatability. All API tokens remain random and private. Runtime files are unchanged.',
-                  inherited_label_note='The released sidebar still says v0.2; captures use the actual report/import/dialog elements. The package and footer identify v0.4.0.',
+                  version_label_note='The released v0.4.1 corrects stale labels and explicitly styles receipt text; no capture-only CSS changes.',
                   checks=checks, images=[dict(filename=n,bytes=(output/n).stat().st_size,sha256=digest((output/n).read_bytes())) for n in FILES])
     (output/'capture.json').write_text(json.dumps(record,indent=2)+'\n',encoding='utf-8',newline='\n')
-    print('PASS: six current-release captures and seven workflow checks; private databases/downloads removed.')
+    print('PASS: six current-release captures and eight workflow checks; private databases/downloads removed.')
 
 
 if __name__ == '__main__':
