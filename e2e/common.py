@@ -34,7 +34,7 @@ def sha(path):
 
 
 def runtime_hashes():
-    names = ["app.py", "workbench.py", "csv_imports.py", "fixtures/synthetic.json"]
+    names = ["app.py", "workbench.py", "csv_imports.py", "ownership.py", "recovery.py", "fixtures/synthetic.json"]
     names += [p.relative_to(ROOT).as_posix() for folder in ("sql", "static")
               for p in sorted((ROOT / folder).rglob("*")) if p.is_file()]
     return {name: sha(ROOT / name) for name in sorted(names)}

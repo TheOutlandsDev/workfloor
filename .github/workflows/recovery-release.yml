@@ -1,0 +1,69 @@
+name: Verify recovery and focused release
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        python: ['3.12', '3.13']
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Build only reviewed committed source
+        run: python -B scripts/build_release.py --output "${{ runner.temp }}/workfloor-release"
+      - name: Verify ZIP bytes and fresh extracted recovery
+        run: python -B scripts/accept_release.py --packages "${{ runner.temp }}/workfloor-release" --workspace "${{ runner.temp }}/workfloor fresh download"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: workfloor-release-${{ runner.os }}-${{ matrix.python }}
+          path: ${{ runner.temp }}/workfloor-release
+          if-no-files-found: error
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: recovery-case-${{ runner.os }}-${{ matrix.python }}
+          path: ${{ runner.temp }}/workfloor fresh download/private recovery/recovery-case.json
+          if-no-files-found: error
+  compare:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: workfloor-release-*
+          path: ${{ runner.temp }}/workfloor-platforms
+      - name: Require identical package bytes on all four platform combinations
+        shell: bash
+        run: |
+          for candidate in "$RUNNER_TEMP"/workfloor-platforms/*/SHA256SUMS.txt; do
+            diff "$RUNNER_TEMP/workfloor-platforms/workfloor-release-Linux-3.12/SHA256SUMS.txt" "$candidate"
+          done
+  publish:
+    if: github.ref == 'refs/heads/main'
+    needs: compare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12'
+      - run: python -B scripts/build_release.py --output "$RUNNER_TEMP/workfloor-release"
+      - name: Publish new verified release and retain earlier versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -B scripts/publish_release.py --output "$RUNNER_TEMP/workfloor-release"

@@ -1,7 +1,7 @@
 """Exercise the real CLI and Windows batch launcher with disposable databases.
 
 Run from any directory: python scripts/verify_entry_points.py
-Requires Windows and Python 3.12+. No third-party packages are needed.
+Requires Python 3.12+. Windows also checks the batch launcher.
 """
 
 import json
@@ -51,8 +51,8 @@ def check_entry_point(label, command, directory, *, batch=False):
 
 
 def main():
-    if os.name != "nt" or sys.version_info < (3, 12):
-        raise SystemExit("This entry-point check requires Windows and Python 3.12+.")
+    if sys.version_info < (3, 12):
+        raise SystemExit("This entry-point check requires Python 3.12+.")
     test_root = (ROOT / ".test-tmp").resolve()
     test_root.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="entry points ", dir=test_root) as temporary:
@@ -60,10 +60,10 @@ def main():
         if directory.resolve().parent != test_root:
             raise RuntimeError("Temporary directory escaped the checkout-local test root")
         cli = check_entry_point("CLI", [sys.executable, str(ROOT / "app.py")], directory)
-        launcher = check_entry_point("Windows launcher", [str(ROOT / "start-workfloor.cmd")], directory, batch=True)
-        if cli != launcher:
-            raise RuntimeError("CLI and Windows launcher reports differ")
-        print("PASS both entry points produced identical reports from separate databases, outside the project working directory")
+        if os.name == 'nt':
+            launcher = check_entry_point("Windows launcher", [str(ROOT / "start-workfloor.cmd")], directory, batch=True)
+            if cli != launcher: raise RuntimeError("CLI and Windows launcher reports differ")
+            print("PASS both entry points produced identical reports from separate databases, outside the project working directory")
 
 
 if __name__ == "__main__":

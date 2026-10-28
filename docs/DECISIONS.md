@@ -35,3 +35,19 @@ Every row is checked before any row can be imported. Duplicate IDs in either the
 A valid preview is bound to the exact UTF-8 file hash and source fingerprint with a process-scoped signature. Apply revalidates under BEGIN IMMEDIATE and inserts new source rows only. A source change requires another preview; any write/reference failure rolls back the entire batch. The signature binds inputs, not human attention or record authenticity.
 
 The existing database schema and saved JSON payloads are preserved. No migration, persistent import-history table or undo-import UI was added. Receipts can be downloaded during the browser session; saved snapshots freeze reporting evidence, not a complete database backup. These boundaries keep the next data workflow inspectable without implying a production import service.
+
+## v0.3 - recovery into a new directory
+
+A report snapshot explains an earlier result but cannot reconstruct the complete
+source database. Recovery therefore has its own stopped-app CLI, with no web
+endpoint. The v0.3 server and maintenance operations share a process-owned guard;
+OS ownership disappears after a crash without deleting a marker someone else may
+hold. Older releases do not participate and must be stopped manually.
+
+SQLite's backup API reads a fixed transaction snapshot. The backup is checked for
+supported schema, structural integrity, foreign keys, exact members, table counts
+and SHA-256; restore copies its exact bytes into a newly created directory. This
+preserves the original dataset while the operator checks a candidate restore.
+Rejecting existing destinations costs an extra directory and explicit selection
+on restart, but removes an accidental overwrite path. There is no automatic repair,
+WAL conversion, in-place undo or migration. Read docs/RECOVERY.md for limits.

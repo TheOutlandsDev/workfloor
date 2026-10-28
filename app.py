@@ -12,6 +12,7 @@ from urllib.parse import parse_qs, urlsplit
 
 import workbench as wb
 import csv_imports
+from ownership import data_lock
 
 ASSETS = {
     "/": ("index.html", "text/html; charset=utf-8"),
@@ -27,7 +28,7 @@ SAMPLES = {
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "Workfloor/0.2"
+    server_version = "Workfloor/0.3"
 
     def setup(self):
         super().setup()
@@ -137,8 +138,26 @@ class Handler(BaseHTTPRequestHandler):
             self.respond(503, {"error": "The write could not complete and was rolled back. Existing records and snapshots are retained; check local storage before retrying."})
 
 
-def make_server(path, port=0):
-    server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+class WorkfloorServer(ThreadingHTTPServer):
+    def __init__(self, path, port, own_lock=True):
+        self.owner = data_lock(Path(path).absolute().parent) if own_lock else None
+        if self.owner: self.owner.__enter__()
+        try: super().__init__(("127.0.0.1", port), Handler)
+        except BaseException:
+            self.release_owner(); raise
+
+    def release_owner(self):
+        if self.owner:
+            owner, self.owner = self.owner, None
+            owner.__exit__(None, None, None)
+
+    def server_close(self):
+        try: super().server_close()
+        finally: self.release_owner()
+
+
+def make_server(path, port=0, *, own_lock=True):
+    server = WorkfloorServer(path, port, own_lock)
     server.daemon_threads = False
     server.block_on_close = True
     server.db_path = Path(path)
@@ -161,23 +180,24 @@ def main():
     if not 0 <= args.port <= 65535:
         parser.error("Port must be between 0 and 65535.")
     try:
-        wb.bounds(args.start, args.end)
-        db = args.data_dir.resolve() / "workfloor.sqlite3"
-        created = wb.ensure_database(db)
-        if args.demo_report:
-            print(json.dumps(wb.report(db, args.start, args.end), indent=2))
-            return
-        with make_server(db, args.port) as server:
-            print(f"Workfloor {wb.VERSION} | SYNTHETIC DATA ONLY", flush=True)
-            print(f"{'Created' if created else 'Reopened'} local database: {db}", flush=True)
-            print(f"Open http://{server.authority}/", flush=True)
-            print("Ctrl+C stops the server. Saved snapshots remain in SQLite.", flush=True)
-            try:
-                server.serve_forever(poll_interval=0.2)
-            except KeyboardInterrupt:
-                pass
-            finally:
-                server.server_close()
+        with data_lock(args.data_dir, create=True):
+            wb.bounds(args.start, args.end)
+            db = args.data_dir.resolve() / "workfloor.sqlite3"
+            created = wb.ensure_database(db)
+            if args.demo_report:
+                print(json.dumps(wb.report(db, args.start, args.end), indent=2))
+                return
+            with make_server(db, args.port, own_lock=False) as server:
+                print(f"Workfloor {wb.VERSION} | SYNTHETIC DATA ONLY", flush=True)
+                print(f"{'Created' if created else 'Reopened'} local database: {db}", flush=True)
+                print(f"Open http://{server.authority}/", flush=True)
+                print("Ctrl+C stops the server. Saved snapshots remain in SQLite.", flush=True)
+                try:
+                    server.serve_forever(poll_interval=0.2)
+                except KeyboardInterrupt:
+                    pass
+                finally:
+                    server.server_close()
     except (wb.InputError, sqlite3.Error, OSError) as exc:
         parser.exit(1, f"Could not start Workfloor: {exc}\n")
 

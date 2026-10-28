@@ -8,3 +8,7 @@ data/
 *.sqlite3-journal
 *.sqlite3-wal
 *.sqlite3-shm
+.workfloor.lock
+backups/
+recovery-output/
+*.zip

@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "app": "Workfloor",
+  "version": "0.3.0",
+  "status": "PASS",
+  "synthetic_only": true,
+  "evidence": "Real CLI and loopback HTTP; no browser interaction",
+  "stages": [
+    {
+      "stage": "original",
+      "metrics": {
+        "orders": 9,
+        "units": 365,
+        "delayed": 4,
+        "completed_late": 1,
+        "open_overdue": 3,
+        "on_time": 3,
+        "review": 2
+      }
+    },
+    {
+      "stage": "after_import",
+      "metrics": {
+        "orders": 12,
+        "units": 440,
+        "delayed": 6,
+        "completed_late": 2,
+        "open_overdue": 4,
+        "on_time": 4,
+        "review": 2
+      }
+    },
+    {
+      "stage": "restored_baseline",
+      "metrics": {
+        "orders": 9,
+        "units": 365,
+        "delayed": 4,
+        "completed_late": 1,
+        "open_overdue": 3,
+        "on_time": 3,
+        "review": 2
+      }
+    },
+    {
+      "stage": "restored_imported",
+      "metrics": {
+        "orders": 12,
+        "units": 440,
+        "delayed": 6,
+        "completed_late": 2,
+        "open_overdue": 4,
+        "on_time": 4,
+        "review": 2
+      }
+    }
+  ],
+  "imported_orders": 3,
+  "imported_events": 2,
+  "saved_snapshots": 2,
+  "restored_table_counts": {
+    "work_orders": 15,
+    "process_steps": 26,
+    "completion_events": 14,
+    "report_runs": 2
+  },
+  "checks": [
+    "running_backup_refused",
+    "baseline_backup_verified_without_source_changes",
+    "imported_records_and_both_snapshots_backed_up",
+    "corrupt_backup_refused_before_restore",
+    "all_four_tables_preserved",
+    "existing_restore_destination_preserved",
+    "restored_http_reports_and_snapshot_bytes_match",
+    "restored_cli_reports_match_and_original_is_unchanged"
+  ]
+}

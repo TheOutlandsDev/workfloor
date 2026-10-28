@@ -6,7 +6,7 @@
 
 Built with Python's standard library, SQLite, and plain HTML/CSS/JavaScript. No package installation, account, hosted API, or employer system is needed.
 
-[Explore sample reports — no installation](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/demos/workfloor/) · [Download v0.2.0](https://github.com/TheOutlandsDev/workfloor/releases/download/v0.2.0/workfloor-0.2.0.zip) · [Portfolio case study](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/#workfloor) · [Release notes](docs/RELEASE.md)
+[Explore sample reports — no installation](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/demos/workfloor/) · [Download v0.3.0](https://github.com/TheOutlandsDev/workfloor/releases/download/v0.3.0/workfloor-0.3.0.zip) · [Portfolio case study](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/#workfloor) · [Release notes](docs/RELEASE.md)
 
 The browser sample uses actual frozen exports from the tested application. Filter orders, inspect source evidence and recorded SQL, compare before/after, or download a report. It is read-only: SQL execution, CSV imports and saving snapshots require the local Python application. See [sample provenance and scope](docs/BROWSER-DEMO.md).
 
@@ -16,7 +16,7 @@ The browser sample uses actual frozen exports from the tested application. Filte
 
 ## Start here
 
-Requires **Python 3.12 or newer** with its standard `sqlite3` module and a modern browser. Tested on Windows 11 with Python 3.12.7 and SQLite 3.45.3. Other platforms are not runtime-qualified in this release.
+Requires **Python 3.12 or newer** with its standard `sqlite3` module and a modern browser. Tested on Windows 11 with Python 3.12.7 and SQLite 3.45.3. The v0.3 CLI/HTTP and recovery workflow is checked separately on Windows and Ubuntu with Python 3.12/3.13. Browser acceptance remains Windows-specific; macOS is unqualified.
 
 Extract the ZIP, open a terminal in the extracted project folder, then run:
 
@@ -51,13 +51,31 @@ You can also choose a UTF-8 CSV file, confirm it contains invented data, and pre
 
 [CSV format, failure behavior and actual workflow](docs/IMPORTS.md) · [Valid sample](examples/import-valid.csv) · [Intentional errors](examples/import-errors.csv)
 
+## Back up and restore a stopped database
+
+Keep original databases and backups private. Use fully spelled **absolute** paths
+with existing parents; choose **new** backup/restore directories outside the input.
+Stop all Workfloor instances before running maintenance:
+
+```text
+python recovery.py backup --data-dir ABSOLUTE_EXISTING_DATA_DIR --output ABSOLUTE_NEW_BACKUP_DIR
+python recovery.py verify --backup ABSOLUTE_BACKUP_DIR
+python recovery.py restore --backup ABSOLUTE_BACKUP_DIR --data-dir ABSOLUTE_NEW_RESTORED_DATA_DIR
+python app.py --data-dir ABSOLUTE_RESTORED_DATA_DIR --port 0
+```
+
+Replace the uppercase placeholders. Reopen the local report and saved snapshots.
+Changed backups and existing destinations are refused. This restores a complete
+SQLite snapshot; it does not undo an import in place or restore CSV/download files.
+[Requirements, recovery examples and limits](docs/RECOVERY.md).
+
 ## Who it is for
 
 A developer or reporting reviewer who wants to inspect an operational report's definition, source grain, date boundaries and uncertainty. This example makes one narrow workflow reproducible; it does not forecast production or control equipment.
 
 ## Project contribution
 
-Connor O'Shea selected the manufacturing/reporting problem and requested the initial scope: a date-range workflow, parameterized SQL, a deliberate join error, persistent data, and a reproducible handoff. Connor subsequently specified CSV preview, safe imports and preservation of existing records for v0.2. The prototype's code, interface, invented fixtures, tests and documentation were implemented with Codex assistance during these builds. The specific reporting policy and tradeoffs are documented for review in [DECISIONS.md](docs/DECISIONS.md).
+Connor O'Shea selected the manufacturing/reporting problem and requested the initial scope: a date-range workflow, parameterized SQL, a deliberate join error, persistent data, and a reproducible handoff. Connor subsequently specified CSV preview, safe imports and preservation of existing records for v0.2, then approved verified database backup/restore and a public recovery case for v0.3. The prototype's code, interface, invented fixtures, tests and documentation were implemented with Codex assistance during these builds. The specific reporting policy and tradeoffs are documented for review in [DECISIONS.md](docs/DECISIONS.md).
 
 All orders, products, work centers, process steps and events were invented for this project. This is an original public demonstration, with no employer code, schema, records or operational deployment represented.
 
@@ -89,11 +107,11 @@ SQLite stores the synthetic source and saved reports. Saving recomputes the repo
 
 Snapshots freeze a report response; the UI offers no update or delete action. A person with local database access can still alter it. The SHA-256 fingerprint identifies the three source tables and is not a signature or authentication mechanism.
 
-For recovery after an interrupted run, restart with the same `--data-dir`. For a database that fails validation, preserve it and use a new data directory for a fresh demonstration. No automatic schema migration or repair is included. If copying a database for your own backup, stop the server first and retain the entire data directory.
+For recovery after an interrupted run, restart with the same `--data-dir`. v0.3 adds **[verified offline database backup and fresh-directory restore](docs/RECOVERY.md)**. Stop the app first, choose a new backup directory, verify it, and restore into a different new data directory. Existing databases and historical releases are never overwritten or migrated. The OS releases the persistent ownership guard when the process exits; never delete an active guard.
 
 ## Validation and status
 
-**v0.2 local prototype · Windows runtime checked · 39 backend tests and 2 Chromium browser tests passed locally with no skips.** Current source automates the complete CSV/report workflow, verifies downloaded receipt bytes, and confirms the earlier saved export is byte-identical after a page reload. The original v0.2 manual check separately covered a process interruption/restart. Desktop and phone-width checks use browser emulation, not physical phones.
+**v0.3 local prototype · verified database recovery.** The synthetic recovery case checks the original 9-order report, an import producing 12 orders, and restoring either state while keeping the original unchanged. It preserves all four tables and the exact saved-report response bytes. See [the recovery guide](docs/RECOVERY.md), [recorded case](examples/recovery-case.json) and [fresh-download CI](https://github.com/TheOutlandsDev/workfloor/actions/workflows/recovery-release.yml). Earlier v0.2 browser captures retain their original scope; no new local visual acceptance was possible during this review.
 
 See [actual validation and limitations](docs/VALIDATION.md), [design decisions](docs/DECISIONS.md), [v0.2 machine-readable verification](docs/verification-v0.2.0.json), and the [example report](examples/default-report.json).
 
@@ -106,7 +124,7 @@ The CLI emits the same JSON report used by the interface. Tests create and remov
 
 ### Automatic verification
 
-[Verify Workfloor](.github/workflows/verify.yml) runs on **every push and pull request**, and can also be started manually. Its Windows job sets up Python 3.12, records runtime versions, runs 39 backend tests (including the original 21), exercises both command-line entry points against separate fresh databases, and runs two Chromium browser tests. The entry-point check runs outside the project working directory with spaces in the data paths; both reports must match the expected totals, independent reference and deliberate 26-versus-9 join error.
+[Verify Workfloor](.github/workflows/verify.yml) runs on **every push and pull request**, and can also be started manually. Its Windows job sets up Python 3.12, records runtime versions, runs the current backend/recovery suite (including the original 39 cases), exercises both command-line entry points against separate fresh databases, and runs two Chromium browser tests. The entry-point check runs outside the project working directory with spaces in the data paths; both reports must match the expected totals, independent reference and deliberate 26-versus-9 join error.
 
 The application browser test saves a baseline, blocks an invalid CSV, checks changed-file invalidation, imports the valid sample, verifies the downloaded receipt, saves the 12-order result, reloads and downloads the preserved 9-order snapshot byte for byte. The second test checks the read-only viewer, frozen-export hashes, filters, evidence dialog, SQL tabs, report download and phone widths. Browser verification records are retained for 14 days; failures also retain a screenshot and an action trace without network/DOM snapshots. See [browser checks and diagnostics](docs/BROWSER-CHECKS.md) for reproduction and limits, and [Actions](https://github.com/TheOutlandsDev/workfloor/actions/workflows/verify.yml) for each commit's hosted result.
 
@@ -124,6 +142,8 @@ This is a single-user, loopback-only local application. It supports only the bou
 
 The cutoff is an **event-time view over the current dataset**, not a reconstruction of what was known historically. There is no ingestion-time history. Missing/conflicting evidence is a review case, not proof of a cause, completed quantity, or actual operator activity. The report does not infer capacity or root cause.
 
-Linux/macOS execution, public hosting, multi-user use, accessibility conformance, penetration testing, large datasets, crash/power-loss recovery and long-term maintenance are unqualified. The UI shows up to 50 recent snapshots; older snapshots remain in SQLite. A snapshot is not a backup or a tamper-evident audit log.
+macOS execution, public hosting, multi-user use, accessibility conformance, penetration testing, large datasets, crash/power-loss recovery and long-term maintenance are unqualified. The UI shows up to 50 recent snapshots; older snapshots remain in SQLite. A snapshot is not a backup or a tamper-evident audit log.
 
-License: [MIT](LICENSE). This repository contains the v0.2.0 source. The original v0.1.0 release remains available with its original files and recorded validation; the CSV workflow was added in v0.2.0. See [release provenance](docs/RELEASE.md).
+License: [MIT](LICENSE). This repository contains the v0.3.0 source. The original v0.1.0 release remains available with its original files and recorded validation; the CSV workflow was added in v0.2.0. See [release provenance](docs/RELEASE.md).
+
+The root MANIFEST-SHA256.json and RELEASE-CHECKSUMS.txt are historical v0.2 records. The v0.3 ZIP uses its generated SOURCE-MANIFEST.json and attached release receipt/checksums.

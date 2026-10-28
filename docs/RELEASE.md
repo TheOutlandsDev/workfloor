@@ -1,17 +1,54 @@
-# Workfloor v0.2.0 — CSV preview and transactional imports
+# Workfloor 0.3.0 - verified offline database recovery
 
-[Download v0.2.0](https://github.com/TheOutlandsDev/workfloor/releases/tag/v0.2.0) · [CSV workflow](IMPORTS.md) · [Validation](VALIDATION.md)
+[Download ZIP](https://github.com/TheOutlandsDev/workfloor/releases/download/v0.3.0/workfloor-0.3.0.zip)
+· [Recovery guide](https://github.com/TheOutlandsDev/workfloor/blob/v0.3.0/docs/RECOVERY.md)
+· [Synthetic case](https://github.com/TheOutlandsDev/workfloor/blob/v0.3.0/examples/recovery-case.json)
+· [Platform checks](https://github.com/TheOutlandsDev/workfloor/actions/workflows/recovery-release.yml)
 
-A Windows-checked local prototype using original invented manufacturing data. Python 3.12+ and its standard SQLite module are required; no package installation or account is needed.
+Adds stopped-database backup, checksum/integrity verification and fresh-directory
+restore. A shared OS-owned guard prevents concurrent v0.3 server/maintenance use.
+SQLite's backup API takes a consistent snapshot; only new output directories are
+created. Existing databases, report snapshots and earlier releases are preserved.
+The schema remains v1, compatible with the earlier public data format.
 
-v0.2 adds UTF-8 CSV preview, row-level validation, insert-only imports in one transaction, exact-file/source preview checks, sample files and a downloadable import receipt. Existing source rows and saved snapshot payloads are retained. Database format remains 1, so an existing v0.1 database needs no schema migration.
+The reproducible case saves the original 9-order / 4-delayed report, backs up,
+imports three invented orders to obtain 12 orders / 6 delayed, saves a second
+snapshot, and backs up again. It restores both states into separate new folders,
+checks all four tables and exact saved-report HTTP bytes, and proves the original
+imported database is unchanged. It deliberately refuses a running backup,
+corruption and an existing restore destination.
 
-The fresh baseline remains 9 orders / 365 units / 4 delayed, with a deliberate 26-versus-9 join error. Applying the included three-order sample produces 12 orders / 440 units / 6 delayed. The earlier saved baseline remains unchanged.
+## Download and run
 
-**39 automated tests passed locally**, with no skips. Both fresh-database command-line entry points passed. The import/file-picker/report/reopen browser workflow was observed separately. CI repeats backend and entry-point checks on pushes and pull requests; its per-commit result is public.
+Compare the ZIP with SHA256SUMS.txt from the same release, then extract into a
+new folder. Install Python 3.12 or 3.13 separately; the runtime app requires no pip
+packages, account or network service. Run `python app.py --port 0` or the Windows
+`start-workfloor.cmd --port 0` launcher. Stop with Ctrl+C before maintenance.
+Use the absolute-path commands in docs/RECOVERY.md to back up, verify and restore.
 
-Use the attached workfloor-0.2.0.zip and SHA256SUMS.txt. The ZIP contains this source tree and its member SHA-256 manifest, without Git metadata, databases, runtime logs, credentials or private material. Extract into a new directory, then run Python app.py or start-workfloor.cmd. Choose a separate data directory for independent experiments.
+The ZIP includes reviewed original source, synthetic fixtures, documentation,
+tests, licenses and historical public captures. No database, backup, runtime,
+real metrics, credentials, logs or employer material is included. SOURCE-MANIFEST.json
+records every member's bytes/hash, and release-receipt.json pins the source commit
+and outer ZIP hash. Windows/Ubuntu Python 3.12/3.13 independently build, extract,
+test and reproduce recovery; matching package/checksum bytes are required before
+publication. Existing named releases are never replaced.
 
-The original [v0.1.0 release](https://github.com/TheOutlandsDev/workfloor/releases/tag/v0.1.0), [release notes](RELEASE-v0.1.0.md) and original checksum remain available unchanged. The older 80-second video documents reporting and snapshots in v0.1; v0.2 CSV behavior is documented with actual captures in IMPORTS.md.
+## Boundaries
 
-This remains an insert-only, loopback-only synthetic demonstration. There is no MES integration, undo-import UI, authentication, multi-user service or qualified Linux/macOS runtime. See the validation record for the observed result and limits.
+This is a single-user synthetic local prototype. Backups cover SQLite, not CSV
+files or browser-downloaded receipts. History snapshots remain reports, not full
+database backups. Only stopped DELETE-journal databases up to 64 MiB are supported.
+WAL/SHM/journal sidecars are preserved and refused; no automatic repair or mode
+conversion occurs. Checksums are not signatures or encryption. Restore never
+reverts the original database in place. Stop idle older releases manually: they
+do not participate in the new ownership guard.
+
+The new recovery evidence is CLI/HTTP. Local Browser access was disabled, so no
+new local interactive visual acceptance is claimed. Existing Windows browser CI
+checks run separately; older captures and the static browser demo retain their
+v0.2 provenance. macOS, hostile concurrent file changes, network/cloud storage,
+multi-user/public hosting, MES integration and power-loss recovery remain unqualified.
+
+See [validation](https://github.com/TheOutlandsDev/workfloor/blob/v0.3.0/docs/VALIDATION.md)
+and [recovery decisions](https://github.com/TheOutlandsDev/workfloor/blob/v0.3.0/docs/DECISIONS.md).
