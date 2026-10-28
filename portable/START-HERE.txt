@@ -1,0 +1,77 @@
+WORKFLOOR 0.4.1 - WINDOWS x64 PORTABLE PACKAGE 1
+
+Windows 11 x64; a current browser. No Python installation, pip, account, admin
+rights, PATH change or internet connection is required to run the extracted app.
+Windows ARM64, 32-bit, macOS and Linux are not covered by this portable download.
+
+1. Compare the ZIP SHA-256 with SHA256SUMS.txt from this release.
+2. In Explorer choose Extract All into a NEW local folder. Do not run inside ZIP.
+3. Double-click Workfloor.cmd. Keep its console window open while using the app.
+4. Your default browser opens the report. If it does not, open the printed local
+   address. The port is selected automatically. No firewall rule is required.
+5. Use only invented data. Press Ctrl+C in the console and wait for the stopped
+   message when finished. Closing the browser alone does not stop the server.
+
+FIRST EXERCISE
+Keep From date 2026-10-01 and Before date 2026-10-08 (exclusive end).
+Expect 9 orders / 365 units / 4 delayed. Compare correct aggregation with the
+deliberately incorrect join: 26 joined rows / 1,195 units. Save a snapshot.
+Load the valid CSV sample, preview, then import all validated rows. Expect
+12 orders / 440 units / 6 delayed. Inspect Import history and its receipt.
+Stop and launch again: imported data, receipt and the older snapshot remain.
+
+WHERE YOUR DATA LIVES
+The default is your Windows local application-data folder under
+Outlands\Workfloor\data (normally %LOCALAPPDATA%\Outlands\Workfloor\data).
+It is OUTSIDE the extracted package. Keep this folder and backups private.
+Replacing/deleting the extracted application folder does not remove that data.
+Copies launched with the default path share the same database; the second
+running instance is refused. Deleting private data is a separate manual action.
+This launcher does not search for, move or overwrite older source-download data.
+
+OPTIONAL MAINTENANCE (from a terminal in this extracted folder)
+Replace placeholders with fully spelled absolute paths, using existing parents.
+Choose NEW backup/restore destinations; stop the app before maintenance.
+
+Workfloor.cmd --check
+Workfloor.cmd --data-dir "ABSOLUTE_EXISTING_DATA_DIR" --backup-to "ABSOLUTE_NEW_BACKUP_DIR"
+Workfloor.cmd --verify-backup "ABSOLUTE_BACKUP_DIR"
+Workfloor.cmd --restore-from "ABSOLUTE_BACKUP_DIR" --data-dir "ABSOLUTE_NEW_RESTORED_DATA_DIR"
+Workfloor.cmd --data-dir "ABSOLUTE_RESTORED_DATA_DIR"
+
+To use an existing schema-2 source-download database, stop the source app and
+select its existing data directory with --data-dir. Back up first. Schema-1 data
+is refused until explicitly upgraded with a new verified backup:
+Workfloor.cmd --data-dir "ABSOLUTE_EXISTING_DATA_DIR" --upgrade-backup "ABSOLUTE_NEW_BACKUP_DIR"
+No data is reset, automatically migrated or overwritten. A report JSON download
+is not a database backup. Backup restores the database, not separately saved CSVs.
+
+TROUBLESHOOTING AND LIMITS
+Keep every extracted file together. Never copy only python.exe or Workfloor.cmd.
+Use a trusted local folder; network drives and linked/reparse data are unsupported.
+Read errors in the console. Do not delete a running database's ownership guard.
+Downloads may receive Windows reputation/organization-policy warnings. This
+package is not Authenticode-signed by OUTLANDS. Do not disable protections; use
+the source alternative or ask the device administrator if execution is blocked.
+The application is loopback-only, single-user, synthetic demonstration software,
+not an employer integration, production MES or signed audit system.
+
+VERIFICATION SCOPE
+Release CI verifies this exact ZIP on a fresh Windows hosted runner with PATH
+restricted to Windows system directories and hostile Python environment values.
+It runs the bundled interpreter, extracted core tests, real loopback requests,
+restart/recovery/legacy-upgrade checks and a Chromium workflow against a separate
+bundled-runtime process. Hosted runners also contain other installed software:
+this is interpreter-isolation evidence, not a manual test on a Python-free PC.
+Default-browser dispatch is covered separately; automated UI uses Chromium.
+
+SOURCE / NOTICES
+application/ contains the unchanged reviewed Workfloor 0.4.1 source and its
+original SOURCE-MANIFEST.json. Runtime binaries are the official CPython 3.14.10
+Windows x64 embeddable distribution, with binaries and licenses retained byte-for-byte. Only python314._pth is
+configured to add the sibling application folder; site imports remain disabled.
+PACKAGE-MANIFEST.json records every included member; release-receipt.json records
+source revisions and upstream pins. Package hashes detect accidental changes;
+they do not establish authorship or remove the need to trust the download source.
+Read THIRD-PARTY-NOTICES.txt and runtime\LICENSE.txt.
+https://github.com/TheOutlandsDev/workfloor
