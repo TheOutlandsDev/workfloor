@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "app": "Workfloor",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "status": "PASS",
   "synthetic_only": true,
   "evidence": "Real CLI and loopback HTTP; no browser interaction",

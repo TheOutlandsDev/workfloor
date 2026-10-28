@@ -1,6 +1,6 @@
 # v0.3 public source review
 
-The target is the public TheOutlandsDev/workfloor repository, with a new v0.3.0
+The target is the public TheOutlandsDev/workfloor repository, with a new v0.3.1
 release. Changes are original recovery/ownership logic, its synthetic tests,
 source packaging/CI and public documentation. The v1 database schema, import
 rules, historical release tags, frozen v0.2 browser exports and media remain

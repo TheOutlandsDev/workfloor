@@ -1,9 +1,13 @@
-# Workfloor 0.3.0 - verified offline database recovery
+# Workfloor 0.3.1 - verified offline database recovery
 
-[Download ZIP](https://github.com/TheOutlandsDev/workfloor/releases/download/v0.3.0/workfloor-0.3.0.zip)
-· [Recovery guide](https://github.com/TheOutlandsDev/workfloor/blob/v0.3.0/docs/RECOVERY.md)
-· [Synthetic case](https://github.com/TheOutlandsDev/workfloor/blob/v0.3.0/examples/recovery-case.json)
+[Download ZIP](https://github.com/TheOutlandsDev/workfloor/releases/download/v0.3.1/workfloor-0.3.1.zip)
+· [Recovery guide](https://github.com/TheOutlandsDev/workfloor/blob/v0.3.1/docs/RECOVERY.md)
+· [Synthetic case](https://github.com/TheOutlandsDev/workfloor/blob/v0.3.1/examples/recovery-case.json)
 · [Platform checks](https://github.com/TheOutlandsDev/workfloor/actions/workflows/recovery-release.yml)
+
+Patch 0.3.1 also checks the stored SQLite header before immutable inspection,
+refusing a WAL-marked snapshot even if its manifest checksum was recomputed.
+The previously published 0.3.0 release is retained unchanged.
 
 Adds stopped-database backup, checksum/integrity verification and fresh-directory
 restore. A shared OS-owned guard prevents concurrent v0.3 server/maintenance use.
@@ -50,5 +54,5 @@ checks run separately; older captures and the static browser demo retain their
 v0.2 provenance. macOS, hostile concurrent file changes, network/cloud storage,
 multi-user/public hosting, MES integration and power-loss recovery remain unqualified.
 
-See [validation](https://github.com/TheOutlandsDev/workfloor/blob/v0.3.0/docs/VALIDATION.md)
-and [recovery decisions](https://github.com/TheOutlandsDev/workfloor/blob/v0.3.0/docs/DECISIONS.md).
+See [validation](https://github.com/TheOutlandsDev/workfloor/blob/v0.3.1/docs/VALIDATION.md)
+and [recovery decisions](https://github.com/TheOutlandsDev/workfloor/blob/v0.3.1/docs/DECISIONS.md).

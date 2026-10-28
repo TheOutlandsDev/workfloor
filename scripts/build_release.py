@@ -8,7 +8,7 @@ import subprocess
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = '0.3.0'
+VERSION = '0.3.1'
 NAMES = (
     '.gitattributes',
     '.github/workflows/recovery-release.yml',
@@ -112,7 +112,7 @@ def build(output):
             if '\0' in text: raise ValueError('Unexpected source payload.')
         if len(data) > 16 * 1024 * 1024: raise ValueError('Source member too large.')
         files[name] = data
-    if b'VERSION = \"0.3.0\"' not in files['workbench.py']: raise ValueError('Application version differs.')
+    if b'VERSION = \"0.3.1\"' not in files['workbench.py']: raise ValueError('Application version differs.')
     if len(files) != len(set(NAMES)): raise ValueError('Duplicate release member.')
     manifest = dict(schema=1, version=VERSION, source_revision=revision,
                     files=[dict(path=n, bytes=len(d), sha256=sha(d)) for n, d in sorted(files.items())])

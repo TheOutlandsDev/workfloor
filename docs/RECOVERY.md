@@ -34,6 +34,8 @@ transaction availability, verifies the exact supported schema, runs
 snapshot through SQLite's backup API in a read transaction. It checks the copy
 again, records its byte length, SHA-256 and all four table counts in
 `manifest.json`, and verifies that complete two-file backup before success.
+The stored SQLite read/write header is checked explicitly; an immutable connection
+can otherwise report DELETE mode for a WAL-marked file.
 The snapshot file need not be byte-identical to the source SQLite container;
 SQLite can change container bookkeeping. Table values and saved payloads persist.
 

@@ -58,6 +58,9 @@ def check_database(con):
 
 def inspect_database(db):
     ordinary_file(db, MAX_DB); no_sidecars(db)
+    header = read_file(db, MAX_DB)[:20]
+    if header[:16] != b'SQLite format 3\0' or header[18:20] != b'\x01\x01':
+        raise wb.InputError('Only rollback-journal SQLite headers are supported; WAL-marked snapshots are refused.')
     # Immutable is restricted to a selected stopped/verified backup copy.
     with closing(sqlite3.connect(db.as_uri() + '?mode=ro&immutable=1', uri=True, autocommit=True)) as con:
         return check_database(con)

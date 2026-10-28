@@ -1,17 +1,17 @@
 # Workfloor 0.3 validation
 
-Local Windows, Python 3.12.7: **58 tests discovered, 57 passed, one skipped**.
+Local Windows, Python 3.12.7: **59 tests discovered, 58 passed, one skipped**.
 The skip is native symlink creation, which this account cannot perform. The
 hard-link case passed with native filesystem access. The initial sandbox denied
 creating that test hard link; the native rerun passed without weakening the test.
-The 39 prior reporting/import/HTTP cases remain, plus 19 recovery cases.
+The 39 prior reporting/import/HTTP cases remain, plus 20 recovery cases.
 
 Recovery cases exercise snapshot values and exact saved payload text, original
 source preservation, baseline restore after an import, owner/server exclusion,
 process-termination lock release, existing/nested destinations, relative/missing
 parent paths, altered/truncated/extra/missing members, duplicate/unsafe manifests,
 schema mismatch despite a recomputed checksum, foreign keys, WAL/sidecar refusal,
-active SQLite transactions, an injected output failure, size bounds and linked files.
+WAL-marked snapshots even with a recomputed manifest, active SQLite transactions, an injected output failure, size bounds and linked files.
 
 `scripts/verify_recovery.py` additionally uses real loopback HTTP and subprocess
 CLI calls. Its eight checks cover the full original -> import -> baseline restore

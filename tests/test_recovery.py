@@ -145,6 +145,16 @@ class Recovery(unittest.TestCase):
             con.execute('ROLLBACK')
         self.assertFalse(self.output.exists())
 
+    def test_recomputed_manifest_cannot_hide_wal_marked_backup(self):
+        rec.backup(self.source, self.output); db = self.output / rec.DB_NAME
+        with closing(sqlite3.connect(db)) as con: con.execute('PRAGMA journal_mode=WAL')
+        self.assertEqual(b'\x02\x02', db.read_bytes()[18:20])
+        p = self.output / 'manifest.json'; value = json.loads(p.read_text())
+        value['database'].update(bytes=db.stat().st_size, sha256=hashlib.sha256(db.read_bytes()).hexdigest())
+        p.write_text(json.dumps(value))
+        with self.assertRaises(wb.InputError): rec.restore(self.output, self.restored)
+        self.assertFalse(self.restored.exists())
+
     def test_backup_output_failure_preserves_source_and_retains_new_partial_output(self):
         original = self.db.read_bytes(); write = rec.fresh_write
         def fail_manifest(path, content):
