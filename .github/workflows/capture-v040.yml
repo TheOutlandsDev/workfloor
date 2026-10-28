@@ -20,7 +20,8 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install the existing locked browser development dependencies
-        run: python -m pip install --require-hashes --only-binary=:all: -r requirements-browser-windows.txt
+        run: >-
+          python -m pip install --require-hashes --only-binary=:all: -r requirements-browser-windows.txt
       - name: Install Chromium for the isolated capture
         run: python -m playwright install chromium
       - name: Verify the release and exercise import, restart and restore in its real UI
