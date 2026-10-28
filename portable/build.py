@@ -3,7 +3,7 @@ import argparse
 import hashlib
 import io
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import subprocess
 import urllib.request
 import zipfile
@@ -40,8 +40,8 @@ def members(body):
     result = {}
     with zipfile.ZipFile(io.BytesIO(body)) as archive:
         for info in archive.infolist():
-            name = info.filename
-            path = Path(name)
+            name = info.orig_filename
+            path = PurePosixPath(name)
             if info.is_dir() or '\\' in name or path.is_absolute() or '..' in path.parts or ':' in name or name in result:
                 raise ValueError('UNEXPECTED_ARCHIVE_MEMBER')
             if info.file_size > 32 * 1024 * 1024: raise ValueError('MEMBER_BOUND_EXCEEDED')

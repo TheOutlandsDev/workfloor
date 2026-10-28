@@ -30,8 +30,8 @@ class PortableBoundaries(unittest.TestCase):
                     import warnings
                     with warnings.catch_warnings():
                         warnings.simplefilter('ignore',UserWarning)
-                        for name in names:z.writestr(name,b'fictional')
-                with self.assertRaisesRegex(ValueError,'UNEXPECTED_ARCHIVE_MEMBER'):build.members(out.getvalue())
+                        for name in names:z.writestr(name.replace('\\','/'),b'fictional')
+                with self.assertRaisesRegex(ValueError,'UNEXPECTED_ARCHIVE_MEMBER'):build.members(out.getvalue().replace(b'bad/member',b'bad\\member'))
 
     def test_browser_dispatch_uses_only_the_new_loopback_server(self):
         with tempfile.TemporaryDirectory() as folder:
