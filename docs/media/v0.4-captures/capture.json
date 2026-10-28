@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "status": "PASS",
+  "application_version": "0.4.0",
+  "source_revision": "7236dd2f1f827206d88ef37ba42e927d4daf748e",
+  "release_zip_sha256": "ff17c2918e52975d32c14960fb765ffa7e1829e43c72cffcd1f1c08c6c5e7f97",
+  "chromium": "156.0.8078.4",
+  "synthetic_only": true,
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "capture_method": "Real UI element screenshots from three isolated app processes on Windows CI; no DOM/CSS changes",
+  "fixture_note": "Only the first server substitutes a fictional fixed receipt ID and UTC time for repeatability. All API tokens remain random and private. Runtime files are unchanged.",
+  "inherited_label_note": "The released sidebar still says v0.2; captures use the actual report/import/dialog elements. The package and footer identify v0.4.0.",
+  "checks": [
+    "published_release_zip_and_all_members_verified",
+    "fresh_report_has_nine_orders_four_delayed",
+    "three_order_preview_leaves_report_unchanged",
+    "stored_receipt_records_three_orders_two_events_and_input_hash",
+    "receipt_bytes_identical_after_real_process_restart",
+    "receipt_bytes_identical_after_verified_database_restore",
+    "no_browser_javascript_errors"
+  ],
+  "images": [
+    {
+      "filename": "01-baseline.jpg",
+      "bytes": 191156,
+      "sha256": "9e73756e4cf8673ccf9102d650abf4b35faf078e39baa73dd67ac460caf9d7f0"
+    },
+    {
+      "filename": "02-valid-preview.jpg",
+      "bytes": 192573,
+      "sha256": "020be7c533084f1ee4d0b03ada7131b98967fa87a76bc8c224e56a26fbd32ccd"
+    },
+    {
+      "filename": "03-import-history.jpg",
+      "bytes": 37524,
+      "sha256": "b047d8dbe4494ec0276b13b3b59d07c9452498bbfac54ea9fbc7c32c1aefe779"
+    },
+    {
+      "filename": "04-receipt.jpg",
+      "bytes": 63232,
+      "sha256": "5ccd878435ddd68f21b835bf6beea5d6e2b64e5ad6ffbc75600567be77cfb7a6"
+    },
+    {
+      "filename": "05-after-restart.jpg",
+      "bytes": 43083,
+      "sha256": "0394fa0282ffc5d3f3161fa6331587a7f0e5a087bc493e6a5962bcc4f86ba7ce"
+    },
+    {
+      "filename": "06-after-restore.jpg",
+      "bytes": 43083,
+      "sha256": "0394fa0282ffc5d3f3161fa6331587a7f0e5a087bc493e6a5962bcc4f86ba7ce"
+    }
+  ]
+}
