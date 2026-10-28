@@ -1,0 +1,32 @@
+name: Publish the verified Workfloor 0.3.1 artifact
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/promote-verified-031.yml', 'scripts/promote_verified_release.py']
+permissions:
+  contents: read
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v8
+        with:
+          run-id: 40706268667
+          github-token: ${{ github.token }}
+          pattern: workfloor-release-*
+          path: ${{ runner.temp }}/verified-workfloor-031
+      - name: Require the completed platform jobs, pinned bytes and unchanged source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -B scripts/promote_verified_release.py --artifacts "$RUNNER_TEMP/verified-workfloor-031"
