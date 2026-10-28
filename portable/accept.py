@@ -9,6 +9,7 @@ from pathlib import Path
 import queue
 import re
 import signal
+import sqlite3
 import subprocess
 import threading
 import time
@@ -44,7 +45,7 @@ def run(packages, workspace, browser=False):
     checks=[]
     def command(args):
         text=subprocess.list2cmdline([str(root/'Workfloor.cmd'),*map(str,args)])
-        return [os.environ['COMSPEC'],'/d','/s','/c','"'+text+'"']
+        return '"'+str(Path(os.environ['COMSPEC']))+'" /d /s /c "'+text+'"'
     def cli(args, expected=0):
         p=subprocess.run(command(args),env=env,cwd=workspace,capture_output=True,timeout=40)
         if p.returncode != expected:
@@ -107,6 +108,7 @@ def run(packages, workspace, browser=False):
         assert baseline['validation']['naive_orders']==26 and baseline['validation']['correct_matches_reference']
         status,raw=request(url,'/api/reports',dict(start='2026-10-01',end='2026-10-08',dataset_sha256=baseline['dataset_sha256']))
         assert status==201;saved=json.loads(raw)['run_id'];saved_bytes=request(url,'/api/reports/'+saved)[1]
+        cli(['--no-browser'],expected=1)
         cli(['--backup-to',str(private/'refused live backup')],expected=1);assert not (private/'refused live backup').exists()
         text=(root/'application/examples/import-valid.csv').read_text(encoding='utf-8')
         status,raw=request(url,'/api/imports/preview',dict(csv_text=text,synthetic=True));assert status==200;preview=json.loads(raw)
@@ -133,7 +135,14 @@ def run(packages, workspace, browser=False):
     cli(['--data-dir',legacy,'--backup-to',private/'legacy snapshot'])
     # Existing old database must be refused without a silent reset or upgrade.
     cli(['--data-dir',legacy,'--no-browser'],expected=1);assert sha((legacy/'workfloor.sqlite3').read_bytes())==before
-    cli(['--data-dir',legacy,'--upgrade-backup',legacy_backup]);assert sha((legacy_backup/'workfloor.sqlite3').read_bytes())==before
+    def legacy_rows(path):
+        con=sqlite3.connect(path.as_uri()+'?mode=ro&immutable=1',uri=True)
+        try:return {t:con.execute('SELECT * FROM '+t+' ORDER BY rowid').fetchall() for t in ('work_orders','process_steps','completion_events','report_runs')}
+        finally:con.close()
+    original_rows=legacy_rows(legacy/'workfloor.sqlite3')
+    cli(['--data-dir',legacy,'--upgrade-backup',legacy_backup])
+    assert legacy_rows(legacy_backup/'workfloor.sqlite3')==original_rows==legacy_rows(legacy/'workfloor.sqlite3')
+    assert (legacy_backup/'workfloor.sqlite3').read_bytes()==(private/'legacy snapshot/workfloor.sqlite3').read_bytes()
     with server(legacy) as url:assert report(url)['metrics']['orders']==9
     checks.append('legacy_schema_refused_then_explicitly_upgraded_with_original_backup')
     if browser:

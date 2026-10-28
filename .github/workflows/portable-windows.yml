@@ -1,0 +1,79 @@
+name: Portable Windows qualification
+on:
+  push:
+    paths: ['portable/**', 'docs/PORTABLE-WINDOWS.md', '.github/workflows/portable-windows.yml']
+  pull_request:
+    paths: ['portable/**', 'docs/PORTABLE-WINDOWS.md', '.github/workflows/portable-windows.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    env:
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12'
+      - name: Check archive boundaries and default-browser dispatch
+        run: python -B -m unittest discover -s portable -p test_packaging.py -v
+      - name: Build from pinned public source and official runtime
+        run: python -B portable/build.py --output "${{ runner.temp }}/portable-package"
+      - name: Install browser qualification tools separately from the package
+        if: runner.os == 'Windows'
+        run: |
+          python -m pip install --require-hashes --only-binary=:all: -r requirements-browser-windows.txt
+          python -m playwright install chromium
+      - name: Extract fresh and exercise bundled runtime, launcher, data and browser workflow
+        if: runner.os == 'Windows'
+        run: python -B portable/accept.py --packages "${{ runner.temp }}/portable-package" --workspace "${{ runner.temp }}/portable fresh download" --browser
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: portable-${{ runner.os }}
+          path: ${{ runner.temp }}/portable-package
+          if-no-files-found: error
+  compare:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: portable-*
+          path: ${{ runner.temp }}/portable-platforms
+      - name: Require identical ZIP, receipt and checksum bytes
+        run: |
+          diff "$RUNNER_TEMP/portable-platforms/portable-Windows/SHA256SUMS.txt" "$RUNNER_TEMP/portable-platforms/portable-Linux/SHA256SUMS.txt"
+          cmp "$RUNNER_TEMP/portable-platforms/portable-Windows/workfloor-0.4.1-windows-x64.zip" "$RUNNER_TEMP/portable-platforms/portable-Linux/workfloor-0.4.1-windows-x64.zip"
+          cmp "$RUNNER_TEMP/portable-platforms/portable-Windows/release-receipt.json" "$RUNNER_TEMP/portable-platforms/portable-Linux/release-receipt.json"
+  publish:
+    needs: compare
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: portable-*
+          path: ${{ runner.temp }}/portable-platforms
+      - name: Recheck full members and acceptance before immutable publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -B portable/publish.py --artifacts "$RUNNER_TEMP/portable-platforms"
