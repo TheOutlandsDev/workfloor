@@ -89,7 +89,7 @@ class CSVImportCase(ImportBase):
         self.assertEqual(wb.saved_report(self.db, saved["run_id"])["metrics"]["orders"], 9)
         self.assertEqual(wb.report(self.db)["metrics"]["orders"], 12)
         with closing(wb.connect(self.db)) as con:
-            self.assertEqual(con.execute("PRAGMA user_version").fetchone()[0], 1)
+            self.assertEqual(con.execute("PRAGMA user_version").fetchone()[0], wb.SCHEMA_VERSION)
             self.assertEqual(con.execute("PRAGMA integrity_check").fetchone()[0], "ok")
 
     def test_duplicate_and_invalid_sample_blocks_the_entire_file(self):

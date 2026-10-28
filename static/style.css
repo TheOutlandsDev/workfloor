@@ -12,3 +12,5 @@ th{position:relative}
 
 .import-issues{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;padding:24px;border-bottom:1px solid var(--line);background:#fff8f2}.import-issue{min-width:0;font-size:12px;line-height:1.7;overflow-wrap:anywhere}.import-issue strong{display:block;color:#803e2c;margin-bottom:8px}.import-issue ul{padding-left:17px;margin:0}.import-issue li+li{margin-top:7px}.import-row-status small{display:block;margin-top:10px;color:#6b7773;font-size:11px}.import-row-status{min-width:150px}.import-results table{min-width:1000px}
 @media(max-width:760px){.import-issues{grid-template-columns:minmax(0,1fr);gap:22px;padding:20px}}
+
+.import-history-actions{display:flex;gap:12px;flex-wrap:wrap}.import-history-actions button{min-height:44px}#import-receipt-details{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.7;max-height:55vh;overflow:auto}#import-history-message{font-size:13px;color:var(--muted);margin:20px 0}

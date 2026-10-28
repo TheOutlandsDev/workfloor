@@ -1,5 +1,12 @@
 # Stop, back up, verify and restore
 
+Current v0.4 recovery supports schema 1 (four tables) and schema 2 (five tables,
+including import_runs). It never migrates automatically. A schema-1 restore must
+be explicitly upgraded before current app startup. See [upgrade guide](IMPORT-HISTORY.md).
+The linked v0.3.1 numeric case remains historical; the current reproduction script
+checks all five current tables. Receipts in schema 2 survive full database restore.
+
+
 Workfloor 0.3 adds an **offline database backup**, separate from report snapshots.
 The database contains all work orders, process steps, completion events and saved
 report payloads. A report JSON export or a saved report snapshot is not a database
@@ -32,7 +39,7 @@ Backup holds the same process-ownership guard as the v0.3 server, probes SQLite
 transaction availability, verifies the exact supported schema, runs
 `PRAGMA integrity_check` and `PRAGMA foreign_key_check`, and creates a consistent
 snapshot through SQLite's backup API in a read transaction. It checks the copy
-again, records its byte length, SHA-256 and all four table counts in
+again, records its byte length, SHA-256 and all supported table counts in
 `manifest.json`, and verifies that complete two-file backup before success.
 The stored SQLite read/write header is checked explicitly; an immutable connection
 can otherwise report DELETE mode for a WAL-marked file.
@@ -70,7 +77,7 @@ It runs actual loopback HTTP and maintenance CLI calls. It first saves the
 9-order / 4-delayed report and backs up the baseline. Then it imports the three
 invented CSV orders, obtains 12 orders / 6 delayed, saves a second snapshot and
 backs up the imported state. It restores both backups into different new
-directories, checks all four tables and the exact HTTP bytes of both saved
+directories, checks all five current tables and the exact HTTP bytes of both saved
 reports, and proves the original imported database remains unchanged. A corrupted
 backup, a running server and an existing destination are deliberately refused.
 

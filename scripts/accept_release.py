@@ -30,11 +30,14 @@ def accept(packages, workspace):
     app = workspace / prefix
     for command in ([sys.executable, '-B', '-m', 'unittest', 'discover', '-s', 'tests', '-v'],
                     [sys.executable, '-B', 'scripts/verify_entry_points.py'],
-                    [sys.executable, '-B', 'scripts/verify_recovery.py', '--workspace', str(workspace / 'private recovery')]):
+                    [sys.executable, '-B', 'scripts/verify_recovery.py', '--workspace', str(workspace / 'private recovery')],
+                    [sys.executable, '-B', 'scripts/verify_import_history.py', '--workspace', str(workspace / 'private import history')]):
         subprocess.run(command, cwd=app, check=True, timeout=120)
     result = json.loads((workspace / 'private recovery/recovery-case.json').read_text(encoding='utf-8'))
     assert result['status'] == 'PASS'
-    print(json.dumps(dict(status='PASS', source_members=receipt['files'], recovery_checks=len(result['checks']), source_revision=receipt['source_revision'])))
+    history = json.loads((workspace / 'private import history/import-history-case.json').read_text(encoding='utf-8'))
+    assert history['status'] == 'PASS'
+    print(json.dumps(dict(status='PASS', source_members=receipt['files'], recovery_checks=len(result['checks']), import_history_checks=len(history['checks']), source_revision=receipt['source_revision'])))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)

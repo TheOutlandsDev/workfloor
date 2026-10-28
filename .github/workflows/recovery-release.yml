@@ -2,8 +2,26 @@ name: Verify recovery and focused release
 on: [push, pull_request, workflow_dispatch]
 permissions:
   contents: read
+  actions: read
 jobs:
+  reuse:
+    runs-on: ubuntu-latest
+    outputs:
+      run_id: ${{ steps.evidence.outputs.run_id }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12'
+      - id: evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -B scripts/release_evidence.py reuse
   verify:
+    needs: reuse
+    if: needs.reuse.outputs.run_id == ''
     strategy:
       fail-fast: false
       matrix:
@@ -33,10 +51,13 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: recovery-case-${{ runner.os }}-${{ matrix.python }}
-          path: ${{ runner.temp }}/workfloor fresh download/private recovery/recovery-case.json
+          path: |
+            ${{ runner.temp }}/workfloor fresh download/private recovery/recovery-case.json
+            ${{ runner.temp }}/workfloor fresh download/private import history/import-history-case.json
           if-no-files-found: error
   compare:
     needs: verify
+    if: needs.verify.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v8
@@ -50,20 +71,28 @@ jobs:
             diff "$RUNNER_TEMP/workfloor-platforms/workfloor-release-Linux-3.12/SHA256SUMS.txt" "$candidate"
           done
   publish:
-    if: github.ref == 'refs/heads/main'
-    needs: compare
+    if: ${{ always() && !cancelled() && github.ref == 'refs/heads/main' && (needs.compare.result == 'success' || needs.reuse.outputs.run_id != '') }}
+    needs: [reuse, verify, compare]
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
+      actions: read
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: '3.12'
-      - run: python -B scripts/build_release.py --output "$RUNNER_TEMP/workfloor-release"
-      - name: Publish new verified release and retain earlier versions
+      - uses: actions/download-artifact@v8
+        with:
+          run-id: ${{ needs.reuse.outputs.run_id || github.run_id }}
+          github-token: ${{ github.token }}
+          pattern: workfloor-release-*
+          path: ${{ runner.temp }}/verified-workfloor
+      - name: Recheck every platform result and committed member before immutable publication
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python -B scripts/publish_release.py --output "$RUNNER_TEMP/workfloor-release"
+        run: python -B scripts/release_evidence.py publish --run-id "${{ needs.reuse.outputs.run_id || github.run_id }}" --artifacts "$RUNNER_TEMP/verified-workfloor"

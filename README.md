@@ -2,11 +2,11 @@
 
 [![Verify Workfloor](https://github.com/TheOutlandsDev/workfloor/actions/workflows/verify.yml/badge.svg?branch=main&event=push)](https://github.com/TheOutlandsDev/workfloor/actions/workflows/verify.yml)
 
-**A runnable local prototype using entirely invented manufacturing data.** Choose a due-date range, identify delayed work orders, inspect their completion evidence, and watch validation catch a join that inflates the count. In v0.2, preview a synthetic CSV and add its orders together without overwriting existing records or snapshots.
+**A runnable local prototype using entirely invented manufacturing data.** Choose a due-date range, identify delayed work orders, inspect their completion evidence, and watch validation catch a join that inflates the count. Preview a synthetic CSV, commit its orders and durable receipt together, then reopen that receipt after restart or verified database restore.
 
 Built with Python's standard library, SQLite, and plain HTML/CSS/JavaScript. No package installation, account, hosted API, or employer system is needed.
 
-[Explore sample reports — no installation](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/demos/workfloor/) · [Download v0.3.1](https://github.com/TheOutlandsDev/workfloor/releases/download/v0.3.1/workfloor-0.3.1.zip) · [Portfolio case study](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/#workfloor) · [Release notes](docs/RELEASE.md)
+[Explore sample reports — no installation](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/demos/workfloor/) · [Download v0.4.0](https://github.com/TheOutlandsDev/workfloor/releases/download/v0.4.0/workfloor-0.4.0.zip) · [Portfolio case study](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/#workfloor) · [Release notes](docs/RELEASE.md)
 
 The browser sample uses actual frozen exports from the tested application. Filter orders, inspect source evidence and recorded SQL, compare before/after, or download a report. It is read-only: SQL execution, CSV imports and saving snapshots require the local Python application. See [sample provenance and scope](docs/BROWSER-DEMO.md).
 
@@ -16,7 +16,7 @@ The browser sample uses actual frozen exports from the tested application. Filte
 
 ## Start here
 
-Requires **Python 3.12 or newer** with its standard `sqlite3` module and a modern browser. Tested on Windows 11 with Python 3.12.7 and SQLite 3.45.3. The v0.3 CLI/HTTP and recovery workflow is checked separately on Windows and Ubuntu with Python 3.12/3.13. Browser acceptance remains Windows-specific; macOS is unqualified.
+Requires **Python 3.12 or newer** with its standard `sqlite3` module and a modern browser. Tested on Windows 11 with Python 3.12.7 and SQLite 3.45.3. The v0.4 CLI/HTTP, upgrade and recovery workflow is checked separately on Windows and Ubuntu with Python 3.12/3.13. Browser acceptance remains Windows-specific; macOS is unqualified.
 
 Extract the ZIP, open a terminal in the extracted project folder, then run:
 
@@ -51,6 +51,25 @@ You can also choose a UTF-8 CSV file, confirm it contains invented data, and pre
 
 [CSV format, failure behavior and actual workflow](docs/IMPORTS.md) · [Valid sample](examples/import-valid.csv) · [Intentional errors](examples/import-errors.csv)
 
+## Import history and upgrading an existing database
+
+After importing, open **Import history** to inspect or download the stored receipt.
+Its file hash, affected IDs, counts and source fingerprints persist with the orders.
+The most recent 50 entries are listed; older receipts remain stored. Failed
+imports leave neither orders nor a receipt. This is local history, not a signed audit log.
+
+Fresh databases use schema 2. Existing schema-1 databases are refused at startup
+until you explicitly stop the app and run:
+
+```text
+python migrate.py --data-dir ABSOLUTE_EXISTING_DATA_DIR --backup-dir ABSOLUTE_NEW_BACKUP_DIR
+```
+
+Use absolute paths with existing parents. The upgrade first creates and verifies
+a schema-1 backup, then preserves all four original tables while adding an empty
+receipt table. Earlier import receipts are not reconstructed. Keep the backup private.
+See [upgrade commands, refusals and recovery](docs/IMPORT-HISTORY.md).
+
 ## Back up and restore a stopped database
 
 Keep original databases and backups private. Use fully spelled **absolute** paths
@@ -75,7 +94,7 @@ A developer or reporting reviewer who wants to inspect an operational report's d
 
 ## Project contribution
 
-Connor O'Shea selected the manufacturing/reporting problem and requested the initial scope: a date-range workflow, parameterized SQL, a deliberate join error, persistent data, and a reproducible handoff. Connor subsequently specified CSV preview, safe imports and preservation of existing records for v0.2, then approved verified database backup/restore and a public recovery case for v0.3. The prototype's code, interface, invented fixtures, tests and documentation were implemented with Codex assistance during these builds. The specific reporting policy and tradeoffs are documented for review in [DECISIONS.md](docs/DECISIONS.md).
+Connor O'Shea selected the manufacturing/reporting problem and requested the initial scope: a date-range workflow, parameterized SQL, a deliberate join error, persistent data, and a reproducible handoff. Connor subsequently specified CSV preview, safe imports and preservation of existing records for v0.2, then approved verified database backup/restore and a public recovery case for v0.3, followed by persistent import history and a backed-up schema upgrade for v0.4. The prototype's code, interface, invented fixtures, tests and documentation were implemented with Codex assistance during these builds. The specific reporting policy and tradeoffs are documented for review in [DECISIONS.md](docs/DECISIONS.md).
 
 All orders, products, work centers, process steps and events were invented for this project. This is an original public demonstration, with no employer code, schema, records or operational deployment represented.
 
@@ -94,7 +113,7 @@ The **grain is one work order**. The cohort contains orders whose due time is at
 
 Replay identity is `(order_id, source_event_id)`. Identical copies collapse; different timestamp variants are quarantined from completion selection. A conflict takes precedence over a missing timestamp. Planned steps are illustrative routing rows, not evidence that a step was completed.
 
-- [Schema](sql/schema.sql): three source tables and an append-only-through-the-UI snapshot table.
+- [Schema](sql/schema.sql): three source tables, a saved-report table and a committed-import receipt table.
 - [Correct report](sql/report.sql): group source events, reduce evidence to one row per order, then join aggregated process steps.
 - [Deliberately wrong query](sql/naive_join.sql): two direct one-to-many joins multiply rows.
 - [Procedural reference](workbench.py): Python datetime comparisons and grouping, without reusing the report SQL. Tests also assert a manually specified result table.
@@ -103,16 +122,23 @@ Dates are bound separately using named SQLite parameters, following the [Python 
 
 ## Persistence and failure behavior
 
-SQLite stores the synthetic source and saved reports. Saving recomputes the report in a transaction, checks it against the reference, and compares the dataset fingerprint with the version the browser loaded. A changed source returns a conflict and asks for reload; an insert failure rolls back. Existing snapshots remain available. The browser's source inspector does not edit source rows.
+SQLite stores the synthetic source, saved reports and committed import receipts. Saving recomputes the report in a transaction, checks it against the reference, and compares the dataset fingerprint with the version the browser loaded. A changed source returns a conflict and asks for reload; an insert failure rolls back. Existing snapshots remain available. The browser's source inspector does not edit source rows.
 
 Snapshots freeze a report response; the UI offers no update or delete action. A person with local database access can still alter it. The SHA-256 fingerprint identifies the three source tables and is not a signature or authentication mechanism.
 
-For recovery after an interrupted run, restart with the same `--data-dir`. v0.3 adds **[verified offline database backup and fresh-directory restore](docs/RECOVERY.md)**. Stop the app first, choose a new backup directory, verify it, and restore into a different new data directory. Existing databases and historical releases are never overwritten or migrated. The OS releases the persistent ownership guard when the process exits; never delete an active guard.
+For recovery after an interrupted run, restart with the same `--data-dir`. v0.3 adds **[verified offline database backup and fresh-directory restore](docs/RECOVERY.md)**. Stop the app first, choose a new backup directory, verify it, and restore into a different new data directory. Restore never overwrites a destination. Schema upgrades are a separate explicit, backed-up command; historical releases remain unchanged. The OS releases the persistent ownership guard when the process exits; never delete an active guard.
 
 ## Validation and status
 
-**v0.3 local prototype · verified database recovery.** The synthetic recovery case checks the original 9-order report, an import producing 12 orders, and restoring either state while keeping the original unchanged. It preserves all four tables and the exact saved-report response bytes. See [the recovery guide](docs/RECOVERY.md), [recorded case](examples/recovery-case.json) and [fresh-download CI](https://github.com/TheOutlandsDev/workfloor/actions/workflows/recovery-release.yml). Earlier v0.2 browser captures retain their original scope; no new local visual acceptance was possible during this review.
-
+**v0.4 local prototype - durable import history and explicit backed-up upgrade.**
+The new [synthetic upgrade/import case](examples/import-history-case.json) checks
+10 CLI/HTTP conditions: a verified v1 backup, preservation of original table values,
+atomic receipt storage, exact receipt bytes after server restart, a separate Python
+process and database restore, and complete rollback when receipt insertion fails.
+The [v0.3.1 recovery receipt](examples/recovery-case.json) remains historical.
+Current package checks repeat the recovery workflow against all five current tables.
+See [fresh-download CI](https://github.com/TheOutlandsDev/workfloor/actions/workflows/recovery-release.yml).
+Earlier media and browser exports retain their v0.2 scope.
 See [actual validation and limitations](docs/VALIDATION.md), [design decisions](docs/DECISIONS.md), [v0.2 machine-readable verification](docs/verification-v0.2.0.json), and the [example report](examples/default-report.json).
 
 ```console
@@ -124,9 +150,9 @@ The CLI emits the same JSON report used by the interface. Tests create and remov
 
 ### Automatic verification
 
-[Verify Workfloor](.github/workflows/verify.yml) runs on **every push and pull request**, and can also be started manually. Its Windows job sets up Python 3.12, records runtime versions, runs the current backend/recovery suite (including the original 39 cases), exercises both command-line entry points against separate fresh databases, and runs two Chromium browser tests. The entry-point check runs outside the project working directory with spaces in the data paths; both reports must match the expected totals, independent reference and deliberate 26-versus-9 join error.
+[Verify Workfloor](.github/workflows/verify.yml) runs on **every push and pull request**, and can also be started manually. Its Windows job sets up Python 3.12, records runtime versions, runs the current backend/recovery suite (including the original 39 cases), exercises both command-line entry points against separate fresh databases, and runs three Chromium browser tests. The entry-point check runs outside the project working directory with spaces in the data paths; both reports must match the expected totals, independent reference and deliberate 26-versus-9 join error.
 
-The application browser test saves a baseline, blocks an invalid CSV, checks changed-file invalidation, imports the valid sample, verifies the downloaded receipt, saves the 12-order result, reloads and downloads the preserved 9-order snapshot byte for byte. The second test checks the read-only viewer, frozen-export hashes, filters, evidence dialog, SQL tabs, report download and phone widths. Browser verification records are retained for 14 days; failures also retain a screenshot and an action trace without network/DOM snapshots. See [browser checks and diagnostics](docs/BROWSER-CHECKS.md) for reproduction and limits, and [Actions](https://github.com/TheOutlandsDev/workfloor/actions/workflows/verify.yml) for each commit's hosted result.
+The application browser test saves a baseline, blocks an invalid CSV, checks changed-file invalidation, imports the valid sample, verifies the downloaded receipt, saves the 12-order result, reloads and downloads the preserved 9-order snapshot byte for byte. A new test downloads the persisted receipt after server restart and database restore. The read-only viewer test checks, frozen-export hashes, filters, evidence dialog, SQL tabs, report download and phone widths. Browser verification records are retained for 14 days; failures also retain a screenshot and an action trace without network/DOM snapshots. See [browser checks and diagnostics](docs/BROWSER-CHECKS.md) for reproduction and limits, and [Actions](https://github.com/TheOutlandsDev/workfloor/actions/workflows/verify.yml) for each commit's hosted result.
 
 To repeat the entry-point check from a **current source checkout on Windows**:
 
@@ -138,12 +164,12 @@ Browser testing has separate, hash-locked developer dependencies. The local appl
 
 ## Current limits
 
-This is a single-user, loopback-only local application. It supports only the bounded, insert-only CSV format described above. It has no MES connection, user accounts, roles, production scheduling, shift calendar, rework/reopening model, partial completion accounting, or schema migration. It is not an official production report or a medical-device tool.
+This is a single-user, loopback-only local application. It supports only the bounded, insert-only CSV format described above. It has no MES connection, user accounts, roles, production scheduling, shift calendar, rework/reopening model, partial completion accounting, or general-purpose schema migration. Only the explicit Workfloor schema-1 to schema-2 upgrade is supported. It is not an official production report or a medical-device tool.
 
-The cutoff is an **event-time view over the current dataset**, not a reconstruction of what was known historically. There is no ingestion-time history. Missing/conflicting evidence is a review case, not proof of a cause, completed quantity, or actual operator activity. The report does not infer capacity or root cause.
+The cutoff is an **event-time view over the current dataset**, not a reconstruction of what was known historically. New committed imports have receipt times; earlier ingestion history is not reconstructed, and the report does not implement ingestion-time queries. Missing/conflicting evidence is a review case, not proof of a cause, completed quantity, or actual operator activity. The report does not infer capacity or root cause.
 
 macOS execution, public hosting, multi-user use, accessibility conformance, penetration testing, large datasets, crash/power-loss recovery and long-term maintenance are unqualified. The UI shows up to 50 recent snapshots; older snapshots remain in SQLite. A snapshot is not a backup or a tamper-evident audit log.
 
-License: [MIT](LICENSE). This repository contains the v0.3.1 source. The original v0.1.0 release remains available with its original files and recorded validation; the CSV workflow was added in v0.2.0. See [release provenance](docs/RELEASE.md).
+License: [MIT](LICENSE). This repository contains the v0.4.0 source. The original v0.1.0 release remains available with its original files and recorded validation; the CSV workflow was added in v0.2.0. See [release provenance](docs/RELEASE.md).
 
-The root MANIFEST-SHA256.json and RELEASE-CHECKSUMS.txt are historical v0.2 records. The v0.3 ZIP uses its generated SOURCE-MANIFEST.json and attached release receipt/checksums.
+The root MANIFEST-SHA256.json and RELEASE-CHECKSUMS.txt are historical v0.2 records. The v0.4 ZIP uses its generated SOURCE-MANIFEST.json and attached release receipt/checksums.

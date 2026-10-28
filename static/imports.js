@@ -1,15 +1,17 @@
 'use strict';
 let csvText = '', csvPreview = null, importReceipt = null;
+let importHistoryRequest = 0;
 const csvColumns = ['order_id','product','work_center','quantity','due_at','completed_at'];
 function importMessage(text, error=false) {
   $('csv-message').textContent=text;
   $('csv-message').classList.toggle('error',error);
 }
 function updateImportControls() {
-  ['csv-file','csv-synthetic','csv-valid','csv-errors','csv-clear'].forEach(id=>$(id).disabled=busy);
+  ['csv-file','csv-synthetic','csv-valid','csv-errors','csv-clear','import-history-refresh'].forEach(id=>$(id).disabled=busy);
   $('csv-preview').disabled=busy||!meta||!csvText||!$('csv-synthetic').checked;
   $('csv-apply').disabled=busy||!csvPreview?.can_import||!$('csv-synthetic').checked;
   $('csv-download').disabled=busy||!importReceipt;
+  document.querySelectorAll('#import-history-list button').forEach(button=>button.disabled=busy);
 }
 function invalidatePreview() {
   csvPreview=null;
@@ -68,11 +70,42 @@ async function previewCsv() {
   }catch(error){importMessage(error.message,true);}
   finally{setBusy(false);}
 }
-function downloadImportReceipt() {
-  if(!importReceipt)return;
-  const url=URL.createObjectURL(new Blob([JSON.stringify(importReceipt,null,2)],{type:'application/json'}));
-  const link=element('a');link.href=url;link.download='workfloor-import-'+importReceipt.import_id.slice(0,8)+'.json';
-  document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+async function downloadSavedReceipt(id) {
+  if(busy)return;
+  setBusy(true);
+  try {
+    const response=await fetch('/api/imports/'+encodeURIComponent(id)+'/receipt.json',{cache:'no-store',redirect:'error'});
+    if(!response.ok)throw new Error('The saved receipt could not be downloaded. Refresh import history and retry.');
+    const blob=await response.blob(),url=URL.createObjectURL(blob),link=element('a');
+    link.href=url;link.download='workfloor-import-'+id+'.json';document.body.append(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    $('import-history-message').textContent='Download requested from the stored receipt bytes. Keep downloaded records private.';
+  }catch(error){$('import-history-message').textContent=error.message;}
+  finally{setBusy(false);}
+}
+function downloadImportReceipt(){if(importReceipt)return downloadSavedReceipt(importReceipt.import_id);}
+async function viewImportReceipt(id) {
+  if(busy)return;setBusy(true);
+  try {
+    const receipt=await api('/api/imports/'+encodeURIComponent(id)+'/receipt.json');
+    $('import-receipt-details').textContent=JSON.stringify(receipt,null,2);
+    $('import-receipt-dialog').showModal();
+  }catch(error){$('import-history-message').textContent=error.message;}
+  finally{setBusy(false);}
+}
+async function loadImportHistory() {
+  const sequence=++importHistoryRequest,data=await api('/api/imports');if(sequence!==importHistoryRequest)return;
+  const container=$('import-history-list');container.replaceChildren();
+  $('import-history-message').textContent=data.imports.length+' recorded committed imports shown. Receipts survive restart and database restore.';
+  if(!data.imports.length){container.append(element('p','No recorded imports yet. Earlier receipts are not reconstructed.'));return;}
+  for(const run of data.imports){
+    const row=element('div',null,'history-row'),details=element('div'),actions=element('div',null,'import-history-actions');
+    details.append(element('strong',run.orders_added+' orders · '+run.completion_events_added+' completion events · committed'),element('p',run.imported_at+' · file SHA-256 '+run.csv_sha256.slice(0,16)+'…'));
+    const view=element('button','View receipt ↗'),download=element('button','Download receipt JSON');view.type=download.type='button';
+    view.disabled=download.disabled=busy;
+    view.addEventListener('click',()=>viewImportReceipt(run.import_id));download.addEventListener('click',()=>downloadSavedReceipt(run.import_id));
+    actions.append(view,download);row.append(details,actions);container.append(row);
+  }
 }
 async function applyCsv() {
   if(busy||!csvPreview?.can_import||!$('csv-synthetic').checked)return;
@@ -81,7 +114,7 @@ async function applyCsv() {
     importReceipt=await api('/api/imports/apply',{method:'POST',headers:{'Content-Type':'application/json','X-Workbench-Token':meta.token},body:JSON.stringify({csv_text:csvText,synthetic:true,dataset_sha256:csvPreview.dataset_sha256,preview_token:csvPreview.preview_token})});
     invalidatePreview();
     $('csv-receipt').textContent='Last successful import: '+importReceipt.orders_added+' orders · '+importReceipt.imported_at+' · '+importReceipt.import_id.slice(0,8)+'. Existing records and snapshots were retained.';
-    importMessage('Imported '+importReceipt.orders_added+' new orders and '+importReceipt.completion_events_added+' completion events. Download the receipt to keep its file and dataset fingerprints.');
+    importMessage('Imported '+importReceipt.orders_added+' new orders and '+importReceipt.completion_events_added+' completion events. The receipt is saved in Import history.');
     report=null;savedView=false;
     $('view-state').textContent='RELOAD REQUIRED';
     ['total','units','delayed','delay-breakdown','review','on-time','dataset-count'].forEach(id=>$(id).textContent='—');
@@ -90,6 +123,7 @@ async function applyCsv() {
       drawReport();await loadHistory();
       message('Current report refreshed after import. Earlier saved snapshots still preserve their original results.');
     }catch(error){message('Import committed, but the report could not refresh. Run the report again. '+error.message,true);}
+    try{await loadImportHistory();}catch(error){$('import-history-message').textContent='Import committed, but history could not refresh. '+error.message;}
   }catch(error){
     invalidatePreview();
     importMessage(error.message+' Preview again before retrying; existing order IDs cannot be overwritten.',true);
@@ -128,3 +162,6 @@ $('csv-apply').addEventListener('click',applyCsv);
 $('csv-download').addEventListener('click',downloadImportReceipt);
 $('csv-clear').addEventListener('click',()=>{$('csv-file').value='';csvText='';$('csv-file-name').textContent='No file selected';$('csv-synthetic').checked=false;invalidatePreview();importMessage('Choose a CSV or load a sample. Preview does not change your database.');});
 updateImportControls();
+$('import-history-refresh').addEventListener('click',()=>{if(!busy)loadImportHistory().catch(error=>$('import-history-message').textContent=error.message);});
+$('close-import-receipt').addEventListener('click',()=>$('import-receipt-dialog').close());
+loadImportHistory().catch(error=>$('import-history-message').textContent=error.message);

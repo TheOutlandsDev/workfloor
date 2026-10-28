@@ -51,3 +51,21 @@ preserves the original dataset while the operator checks a candidate restore.
 Rejecting existing destinations costs an extra directory and explicit selection
 on restart, but removes an accidental overwrite path. There is no automatic repair,
 WAL conversion, in-place undo or migration. Read docs/RECOVERY.md for limits.
+
+
+## v0.4: durable receipt and explicit upgrade
+
+Orders, events and canonical JSON receipt use one SQLite transaction: if receipt
+storage fails, the import fails too. Storing JSON preserves exact downloaded bytes
+across restarts rather than rebuilding a receipt from current rows. Indexed metadata
+makes the latest 50 visible; older receipts remain stored. This duplicates a small
+amount of metadata in exchange for stable downloads. The 64 MiB database limit remains.
+
+The only upgrade is schema 1 to 2. It takes the shared ownership guard, verifies a
+new v1 backup, then holds an exclusive SQLite transaction while checking that the
+original four tables still match the backup. It adds an empty ledger without
+rewriting old payloads. Failure rolls back DDL; backup remains. Receipt times
+cannot be recovered from historical imports, so they are never invented.
+
+Local database owners can edit receipts. These records are useful operational
+history, not signed audit evidence, operator identity or proof of human approval.

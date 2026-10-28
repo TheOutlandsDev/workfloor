@@ -32,3 +32,13 @@ On failure, the recording block adds a full-page screenshot and Playwright actio
 An intentional local failure verified the screenshot and trace paths, empty network payloads and runtime-token check. To repeat that collector probe in a disposable local run, set the process environment variable `WORKFLOOR_BROWSER_PROBE=1` and run `--pattern test_workflow.py`; **exit code 1 is expected**. Remove the variable before a normal run. CI does not enable the probe. Startup failures record what is available; they may occur before a screenshot/trace can be captured.
 
 These checks are developer tooling added after v0.2.0. The release ZIP/tag and application runtime code remain unchanged. See [sample export provenance](BROWSER-DEMO.md) for the no-install portfolio viewer.
+
+
+## v0.4 persisted receipt scenario
+
+The suite now discovers three browser tests. e2e/test_import_history.py imports
+the valid synthetic sample, opens the history receipt, downloads it, restarts the
+server with the same database, then backs up/restores into a new directory. The
+receipt downloads must match exactly at each stage. Separate CLI acceptance checks
+a new Python process. This is hosted browser automation, not local manual review
+or a physical-device/power-loss test.

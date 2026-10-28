@@ -28,7 +28,7 @@ SAMPLES = {
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "Workfloor/0.3"
+    server_version = "Workfloor/0.4"
 
     def setup(self):
         super().setup()
@@ -38,12 +38,13 @@ class Handler(BaseHTTPRequestHandler):
         # Routine request bodies, headers and tokens are not logged.
         return
 
-    def respond(self, status, value, content_type="application/json; charset=utf-8", body=True):
+    def respond(self, status, value, content_type="application/json; charset=utf-8", body=True, attachment=None):
         data = value if isinstance(value, bytes) else json.dumps(value, ensure_ascii=False).encode()
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(data)))
         self.send_header("Cache-Control", "no-store")
+        if attachment: self.send_header('Content-Disposition', 'attachment; filename="' + attachment + '"')
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "no-referrer")
         self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'")
@@ -81,6 +82,14 @@ class Handler(BaseHTTPRequestHandler):
                 self.respond(200, wb.report(self.server.db_path, query["start"][0], query["end"][0]), body=body)
             elif url.path == "/api/reports":
                 self.respond(200, {"reports": wb.history(self.server.db_path)}, body=body)
+            elif url.path == '/api/imports':
+                self.respond(200, {'imports': csv_imports.history(self.server.db_path), 'limit': 50,
+                                   'scope': 'Committed imports recorded by v0.4; earlier receipts are not reconstructed.'}, body=body)
+            elif url.path.startswith('/api/imports/') and url.path.endswith('/receipt.json'):
+                import_id = url.path[len('/api/imports/'):-len('/receipt.json')]
+                data = csv_imports.receipt_bytes(self.server.db_path, import_id)
+                if data is None: self.respond(404, {'error': 'Import receipt not found.'}, body=body)
+                else: self.respond(200, data, body=body, attachment='workfloor-import-' + import_id + '.json')
             elif url.path.startswith("/api/reports/"):
                 result = wb.saved_report(self.server.db_path, url.path.removeprefix("/api/reports/"))
                 self.respond(200 if result else 404, result or {"error": "Snapshot not found."}, body=body)

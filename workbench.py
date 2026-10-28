@@ -15,7 +15,8 @@ import uuid
 ROOT = Path(__file__).resolve().parent
 APP_ID = 1297564209
 DEFAULT_START, DEFAULT_END = "2026-10-01", "2026-10-08"
-VERSION = "0.3.1"
+VERSION = "0.4.0"
+SCHEMA_VERSION = 2
 STATUS_LABELS = {
     "on_time": "Completed on time", "completed_late": "Completed late",
     "open_overdue": "Open at cutoff", "review_conflict": "Conflicting event",
@@ -75,8 +76,13 @@ def ensure_database(path):
         fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
     except FileExistsError:
         with closing(connect(path)) as con:
-            if con.execute("PRAGMA application_id").fetchone()[0] != APP_ID or con.execute("PRAGMA user_version").fetchone()[0] != 1:
-                raise InputError("Existing database is not Workfloor v1. Preserve it and choose another data directory.")
+            if con.execute("PRAGMA application_id").fetchone()[0] != APP_ID:
+                raise InputError("Existing database is not Workfloor. Preserve it and choose another data directory.")
+            version = con.execute("PRAGMA user_version").fetchone()[0]
+            if version == 1:
+                raise InputError("Schema v1 needs an explicit backed-up upgrade: see docs/IMPORT-HISTORY.md and migrate.py. No automatic migration was performed.")
+            if version != SCHEMA_VERSION:
+                raise InputError("Unsupported Workfloor schema. Preserve it and use the matching app version.")
         return False
     os.close(fd)
     try:

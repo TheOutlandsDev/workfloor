@@ -1,62 +1,50 @@
-# Workfloor 0.3 validation
+# Workfloor 0.4 validation
 
-Local Windows, Python 3.12.7: **59 tests discovered, 58 passed, one skipped**.
-The skip is native symlink creation, which this account cannot perform. The
-hard-link case passed with native filesystem access. The initial sandbox denied
-creating that test hard link; the native rerun passed without weakening the test.
-The 39 prior reporting/import/HTTP cases remain, plus 20 recovery cases.
+The local native Windows / Python 3.12.7 suite discovers **79 tests**: 78 pass
+and one symlink-creation case is skipped because the account lacks that privilege.
+The hard-link case requires native filesystem access and passes there.
 
-Recovery cases exercise snapshot values and exact saved payload text, original
-source preservation, baseline restore after an import, owner/server exclusion,
-process-termination lock release, existing/nested destinations, relative/missing
-parent paths, altered/truncated/extra/missing members, duplicate/unsafe manifests,
-schema mismatch despite a recomputed checksum, foreign keys, WAL/sidecar refusal,
-WAL-marked snapshots even with a recomputed manifest, active SQLite transactions, an injected output failure, size bounds and linked files.
+The 20 new cases cover committed history/HTTP bytes, rollback after receipt
+insertion, refusal of stale/invalid imports, retained older receipts, latest-50
+listing, backup/restore, explicit schema migration, backup/verification failures,
+DDL rollback, source changes after backup, active ownership and strict same-commit
+release evidence. The previous 59 reporting/import/recovery cases remain.
 
-`scripts/verify_recovery.py` additionally uses real loopback HTTP and subprocess
-CLI calls. Its eight checks cover the full original -> import -> baseline restore
-and imported restore case. It verifies all four tables, exact response bytes for
-both saved reports, matching restored CLI reports and an unchanged original.
-[The reviewed numeric receipt](../examples/recovery-case.json) contains only
-invented-result counts and fixed check identifiers, without paths, timestamps,
-tokens, report IDs or database files.
+The [ten-check numeric case](../examples/import-history-case.json) uses original
+invented schema-1 data, the actual migration CLI, real loopback HTTP and a separate
+Python process. It proves preserved old table values and snapshot bytes, no
+fabricated earlier receipts, atomic import+history, identical receipt bytes after
+server restart/new process/database restore, and rollback of an entire import on
+an injected receipt INSERT failure. The old v0.3.1 recovery code separately verified
+the generated schema-1 pre-upgrade backup. Raw private case folders are excluded.
 
-## Fresh downloaded package
+## Extracted packages and CI
 
-[Recovery/release CI](https://github.com/TheOutlandsDev/workfloor/actions/workflows/recovery-release.yml)
-builds only an explicit committed source allowlist, checks every ZIP member, then
-runs all tests, CLI/launcher checks and the complete recovery case from a new
-extracted directory containing spaces. Windows and Ubuntu use Python 3.12/3.13;
-all four package/checksum outputs must match before main can publish a new release.
-See the actual completed Actions result for the selected source revision.
+The [four-platform workflow](https://github.com/TheOutlandsDev/workfloor/actions/workflows/recovery-release.yml)
+builds an explicit committed inventory on Windows/Ubuntu with Python 3.12/3.13.
+Each extracts into a fresh path with spaces, reruns the full suite, CLI/Windows
+launcher checks, eight recovery checks against five current tables and ten import
+history checks. All package bytes must match. A main run can reuse only complete
+successful same-commit canonical push evidence; the publisher rechecks job results,
+all four assets, checksums, source manifest and each raw committed source member.
+Use the completed Actions result at the exact release commit for hosted evidence.
 
-On Windows the existing batch launcher and Python CLI must produce identical
-fresh-database reports. Linux checks the Python CLI; it does not run the Windows
-batch file. No third-party packages are needed for these checks. Synthetic private
-test/backup outputs remain outside the release allowlist.
+## Browser scope
 
-## Separate browser evidence
+The [Windows browser workflow](https://github.com/TheOutlandsDev/workfloor/actions/workflows/verify.yml)
+checks three cases with locked developer-only dependencies: original report/CSV
+workflow, frozen read-only viewer, and persisted receipt view/download after server
+restart and restored database. These tests are distinct from local visual review.
+Browser access is disabled locally; no new local interactive acceptance is claimed.
+Earlier media, static exports and [v0.2 evidence](VALIDATION-v0.2.0.md) keep their
+original provenance. See [browser reproduction](BROWSER-CHECKS.md).
 
-The existing [Windows browser workflow](https://github.com/TheOutlandsDev/workfloor/actions/workflows/verify.yml)
-continues to check the CSV/report app and read-only sample viewer with separate
-locked development dependencies. Those browser checks do not cover the new
-maintenance CLI. No fresh local interactive visual acceptance was performed
-because Browser access was disabled. Earlier screenshots, walkthrough and static
-sample JSON retain v0.2 provenance; they were not relabeled as v0.3 captures.
-See [historical v0.2 validation](VALIDATION-v0.2.0.md).
+## Boundaries
 
-## Practical limits
-
-These tests show functional behavior on existing Windows hosts and the specified
-CI runners; they are not a clean-OS installation or power-loss certification.
-The guard coordinates v0.3 entry points, not idle older apps or unrelated database
-tools. Manually stop those too. A transaction probe is not universal process
-detection. File checks detect observed changes and links but do not establish
-hostile concurrent-writer isolation. Network/cloud-synced drives, macOS, public
-backend hosting, multi-user use, cryptographic authenticity, encryption, employer
-systems and live manufacturing integration remain outside this release.
-
-Restore preserves a verified SQLite snapshot in a new directory. It does not
-automatically switch the app, undo an import in place, restore separately saved
-CSV/receipt files, migrate a schema or repair corruption. Follow
-[RECOVERY.md](RECOVERY.md), keeping originals and failed new output for inspection.
+Functional tests are not clean-OS installation, hostile filesystem isolation,
+cryptographic authenticity or power-loss certification. The owner guard coordinates
+current entry points; unrelated tools and idle older releases must be stopped
+manually. Only trusted local DELETE-journal databases up to 64 MiB are supported.
+There is no employer/MES integration, general migration engine or multi-user service.
+Backup/restore preserves SQLite, not separately saved CSV or downloaded files.
+Migration preserves a verified old-format backup before changing the original.

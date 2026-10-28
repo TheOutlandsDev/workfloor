@@ -1,5 +1,10 @@
 # v0.2 — CSV preview, import and preserved snapshots
 
+Current v0.4 adds [persistent import history and backed-up upgrades](IMPORT-HISTORY.md).
+Receipts commit with the orders and remain downloadable after restart/restore.
+The screenshots and observed manual session below are historical v0.2 evidence.
+
+
 This is an original public demonstration using invented records. The file picker sends CSV text only to the local Workfloor server when you select Preview. The application cannot verify a file's provenance.
 
 ## Reproduce the workflow
@@ -12,7 +17,7 @@ Start with a fresh data directory so the included order IDs do not already exist
 2. Open **Import CSV → Load error sample → Preview CSV**. All three rows have issues; import stays disabled. The preview shows duplicate IDs within the file, a collision with existing `WO-1002`, an invalid calendar date, a missing product and a nonnumeric quantity. No data changes.
 3. Select **Load valid sample → Preview CSV**. Review three valid orders. Selecting a file through the file picker also works; it clears any earlier preview and requires confirmation that the data is invented.
 4. Select **Import all validated rows**. The current default report becomes **12 orders / 440 units / 6 delayed / 2 needing review / 4 on time**. Two completion events are added. The full source contains 15 orders; three do not enter this due-date cohort.
-5. Download the import receipt if you want to retain its file hash, source hashes before/after, added IDs, time and observed default report totals. Receipt downloads are a browser-session feature, not a persistent import-history screen.
+5. Download the import receipt if you want to retain its file hash, source hashes before/after, added IDs, time and observed default report totals. In v0.4, the stored receipt remains available under Import history after restart and database restore.
 6. Open the earlier snapshot. Its **9 orders / 365 units / 4 delayed** and query text remain unchanged. Run the current query again to return to **12 orders / 440 units / 6 delayed**.
 7. Restart with the same data directory. Imported orders and both saved snapshots remain in SQLite.
 
@@ -45,9 +50,9 @@ The process signs a valid preview's exact CSV hash and source fingerprint. Apply
 
 A changed file or restarted process invalidates the preview. A changed source returns HTTP 409 and requires another preview. Duplicate IDs are errors; no `REPLACE`, upsert, update, delete, skip-on-error or partial-success path is used. A failure after earlier inserts rolls back the entire batch. Competing applies of the same preview permit only one commit.
 
-Existing source rows and snapshot payloads are retained. v0.2 keeps database format 1 and needs no schema migration. v0.1 snapshot JSON remains readable. The signature binds a preview to a file and source; it does not prove human review, authenticate manufacturing evidence or create a tamper-proof ledger.
+Existing source rows and snapshot payloads are retained. Historical v0.2 used database format 1. Current v0.4 uses schema 2 and requires the explicit backed-up upgrade for older databases. v0.1 snapshot JSON remains readable. The signature binds a preview to a file and source; it does not prove human review, authenticate manufacturing evidence or create a tamper-proof ledger.
 
-Successful imports add records to the selected local database. There is no undo-import UI. Use a separate data directory for independent experiments. A snapshot is a frozen report, not a backup of the database. Import receipts can be downloaded during the current browser session; after reload, snapshots and source data remain, while that session's receipt display resets.
+Successful imports add records to the selected local database. There is no undo-import UI. Use a separate data directory for independent experiments. A snapshot is a frozen report, not a backup of the database. Current v0.4 stores each committed receipt and exposes it under Import history after reload. Failed imports have no receipt history.
 
 ## Observed checks
 

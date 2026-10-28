@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 import hashlib
 import hmac
 import io
+import json
 import re
 import uuid
 
@@ -128,6 +129,8 @@ def apply_import(path, text, expected_fingerprint, preview_token, key):
     ):
         raise wb.InputError("This file changed or its preview expired. Preview the CSV again.")
     with closing(wb.connect(path)) as con:
+        if con.execute('PRAGMA user_version').fetchone()[0] != wb.SCHEMA_VERSION:
+            raise wb.InputError('Upgrade this database with a verified backup before importing. See docs/IMPORT-HISTORY.md.')
         con.execute("BEGIN IMMEDIATE")
         try:
             current = wb.source_fingerprint(wb.source_data(con))
@@ -154,6 +157,7 @@ def apply_import(path, text, expected_fingerprint, preview_token, key):
             if not result["validation"]["correct_matches_reference"]:
                 raise wb.InputError("The post-import report disagreed with its reference. The entire import was rolled back.")
             receipt = {
+                "version": wb.VERSION, "status": "committed",
                 "import_id": import_id,
                 "imported_at": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
                 "orders_added": checked["total_rows"], "completion_events_added": events,
@@ -164,9 +168,28 @@ def apply_import(path, text, expected_fingerprint, preview_token, key):
                 "default_report_matches_reference": True,
                 "policy": checked["policy"],
             }
+            encoded = wb.json_text(receipt)
+            con.execute('INSERT INTO import_runs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                        (import_id, receipt['imported_at'], 'committed', digest, current,
+                         result['dataset_sha256'], receipt['orders_added'], events, encoded))
             con.execute("COMMIT")
-            return receipt
+            return json.loads(encoded)
         except Exception:
             if con.in_transaction:
                 con.execute("ROLLBACK")
             raise
+
+
+def history(path):
+    with closing(wb.connect(path)) as con:
+        return [dict(row) for row in con.execute(
+            'SELECT import_id, imported_at, status, csv_sha256, orders_added, completion_events_added, '
+            'dataset_sha256_before, dataset_sha256_after FROM import_runs ORDER BY imported_at DESC, rowid DESC LIMIT 50')]
+
+
+def receipt_bytes(path, import_id):
+    if not isinstance(import_id, str) or not re.fullmatch('[0-9a-f]{32}', import_id):
+        raise wb.InputError('Invalid import identifier.')
+    with closing(wb.connect(path)) as con:
+        row = con.execute('SELECT receipt_json FROM import_runs WHERE import_id = ?', (import_id,)).fetchone()
+        return (row[0] + '\n').encode('utf-8') if row else None

@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "app": "Workfloor",
+  "version": "0.4.0",
+  "status": "PASS",
+  "synthetic_only": true,
+  "evidence": "Real CLI and loopback HTTP; constructed original v1 fixture; no browser acceptance implied",
+  "from_schema": 1,
+  "to_schema": 2,
+  "original_tables_preserved": 4,
+  "restored_tables": 5,
+  "metrics_before": {
+    "orders": 9,
+    "units": 365,
+    "delayed": 4,
+    "completed_late": 1,
+    "open_overdue": 3,
+    "on_time": 3,
+    "review": 2
+  },
+  "metrics_after": {
+    "orders": 12,
+    "units": 440,
+    "delayed": 6,
+    "completed_late": 2,
+    "open_overdue": 4,
+    "on_time": 4,
+    "review": 2
+  },
+  "imported_orders": 3,
+  "imported_events": 2,
+  "receipt_count": 1,
+  "csv_sha256": "c050d0b4727f70dd38b8953703fee3acc20ef4bf11eb710e75cadb906b24260e",
+  "checks": [
+    "legacy_startup_refuses_automatic_migration",
+    "verified_v1_backup_precedes_schema_v2",
+    "prior_receipts_not_fabricated",
+    "orders_and_durable_receipt_commit_together",
+    "receipt_bytes_identical_after_server_restart",
+    "receipt_bytes_identical_in_new_process",
+    "all_five_tables_preserved_after_restore",
+    "receipt_bytes_identical_after_database_restore",
+    "legacy_snapshot_bytes_preserved",
+    "failed_receipt_insert_rolls_back_entire_import"
+  ]
+}

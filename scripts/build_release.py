@@ -8,7 +8,7 @@ import subprocess
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = '0.3.1'
+VERSION = '0.4.0'
 NAMES = (
     '.gitattributes',
     '.github/workflows/recovery-release.yml',
@@ -85,6 +85,19 @@ NAMES = (
     'tests/test_recovery.py',
     'tests/test_workbench.py',
     'workbench.py',
+    'migrate.py',
+    'docs/IMPORT-HISTORY.md',
+    'docs/RELEASE-v0.3.1.md',
+    'docs/VALIDATION-v0.3.1.md',
+    'e2e/test_import_history.py',
+    'examples/import-history-case.json',
+    'scripts/release_evidence.py',
+    'scripts/verify_import_history.py',
+    'sql/schema-v1.sql',
+    'sql/migrate-v1-v2.sql',
+    'tests/test_import_history.py',
+    'tests/test_migration.py',
+    'tests/test_release_evidence.py',
 )
 
 def sha(data): return hashlib.sha256(data).hexdigest()
@@ -112,7 +125,7 @@ def build(output):
             if '\0' in text: raise ValueError('Unexpected source payload.')
         if len(data) > 16 * 1024 * 1024: raise ValueError('Source member too large.')
         files[name] = data
-    if b'VERSION = \"0.3.1\"' not in files['workbench.py']: raise ValueError('Application version differs.')
+    if ('VERSION = "' + VERSION + '"').encode() not in files['workbench.py']: raise ValueError('Application version differs.')
     if len(files) != len(set(NAMES)): raise ValueError('Duplicate release member.')
     manifest = dict(schema=1, version=VERSION, source_revision=revision,
                     files=[dict(path=n, bytes=len(d), sha256=sha(d)) for n, d in sorted(files.items())])

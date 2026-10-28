@@ -90,7 +90,7 @@ def run(workspace):
     for backup, target in ((before_backup, restored_before), (after_backup, restored_after)):
         cli([ROOT / 'recovery.py', 'restore', '--backup', backup, '--data-dir', target])
         assert (backup / recovery.DB_NAME).read_bytes() == (target / recovery.DB_NAME).read_bytes()
-    assert table_rows(restored_after / recovery.DB_NAME) == expected_rows; checks.append('all_four_tables_preserved')
+    assert table_rows(restored_after / recovery.DB_NAME) == expected_rows; checks.append('all_five_tables_preserved')
     preserved = sha(restored_after / recovery.DB_NAME)
     cli([ROOT / 'recovery.py', 'restore', '--backup', after_backup, '--data-dir', restored_after], expected=2)
     assert sha(restored_after / recovery.DB_NAME) == preserved; checks.append('existing_restore_destination_preserved')

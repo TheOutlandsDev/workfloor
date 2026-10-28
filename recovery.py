@@ -17,7 +17,8 @@ from ownership import data_lock, ordinary_file, plain_path, identity
 DB_NAME = 'workfloor.sqlite3'
 MAX_DB = 64 * 1024 * 1024
 MAX_MANIFEST = 16 * 1024
-TABLES = ('work_orders', 'process_steps', 'completion_events', 'report_runs')
+TABLES_V1 = ('work_orders', 'process_steps', 'completion_events', 'report_runs')
+TABLES = (*TABLES_V1, 'import_runs')
 
 def read_file(path, maximum):
     before = ordinary_file(path, maximum)
@@ -45,16 +46,17 @@ def schema(con):
 
 def check_database(con):
     con.execute('PRAGMA trusted_schema = OFF')
-    if con.execute('PRAGMA application_id').fetchone()[0] != wb.APP_ID or con.execute('PRAGMA user_version').fetchone()[0] != 1:
-        raise wb.InputError('The database is not supported Workfloor schema v1.')
+    version = con.execute('PRAGMA user_version').fetchone()[0]
+    if con.execute('PRAGMA application_id').fetchone()[0] != wb.APP_ID or version not in (1, 2):
+        raise wb.InputError('The database is not supported Workfloor schema v1 or v2.')
     if con.execute('PRAGMA journal_mode').fetchone()[0] != 'delete':
         raise wb.InputError('Only stopped DELETE-journal databases are supported. No journal conversion is performed.')
     with closing(sqlite3.connect(':memory:', autocommit=True)) as expected:
-        expected.executescript((wb.ROOT / 'sql/schema.sql').read_text(encoding='utf-8'))
+        expected.executescript((wb.ROOT / ('sql/schema-v1.sql' if version == 1 else 'sql/schema.sql')).read_text(encoding='utf-8'))
         if schema(con) != schema(expected): raise wb.InputError('The Workfloor schema differs; no migration or repair is attempted.')
-    if con.execute('PRAGMA integrity_check').fetchall() != [('ok',)]: raise wb.InputError('SQLite integrity check failed.')
+    if [tuple(row) for row in con.execute('PRAGMA integrity_check')] != [('ok',)]: raise wb.InputError('SQLite integrity check failed.')
     if con.execute('PRAGMA foreign_key_check').fetchone() is not None: raise wb.InputError('SQLite foreign-key check failed.')
-    return {table: con.execute('SELECT COUNT(*) FROM ' + table).fetchone()[0] for table in TABLES}
+    return {table: con.execute('SELECT COUNT(*) FROM ' + table).fetchone()[0] for table in (TABLES_V1 if version == 1 else TABLES)}
 
 def inspect_database(db):
     ordinary_file(db, MAX_DB); no_sidecars(db)
@@ -78,36 +80,42 @@ def backup(data_dir, output):
     if not source.is_dir(): raise wb.InputError('The source data directory must already exist.')
     target = new_directory(output, source); db = source / DB_NAME
     with data_lock(source):
-        ordinary_file(db, MAX_DB); no_sidecars(db)
-        # Probe for active transactions. The server guard is authoritative for v0.3;
-        # an idle older client must still be stopped manually.
-        with closing(sqlite3.connect(db.as_uri() + '?mode=rw', uri=True, timeout=.1, autocommit=True)) as probe:
-            if probe.execute('PRAGMA journal_mode').fetchone()[0] != 'delete': raise wb.InputError('Stop a DELETE-journal Workfloor database before backup.')
-            probe.execute('BEGIN EXCLUSIVE'); probe.execute('ROLLBACK')
-        no_sidecars(db)
-        with closing(sqlite3.connect(db.as_uri() + '?mode=ro', uri=True, timeout=.1, autocommit=True)) as con:
-            con.execute('BEGIN')
-            try:
-                counts = check_database(con)
-                target.mkdir(mode=0o700)
-                # Use SQLite's backup API rather than raw-copying an open source.
-                # One read transaction fixes the snapshot while the guard is held.
-                fresh_write(target / DB_NAME, b'')
-                page_size = con.execute('PRAGMA page_size').fetchone()[0]
-                deadline = time.monotonic() + 15
-                def progress(_status, _remaining, total):
-                    if total * page_size > MAX_DB or time.monotonic() > deadline:
-                        raise wb.InputError('Snapshot exceeds the size or time budget.')
-                with closing(sqlite3.connect((target / DB_NAME).as_uri() + '?mode=rw', uri=True, autocommit=True)) as destination:
-                    con.backup(destination, pages=256, progress=progress, sleep=.01)
-                data = read_file(target / DB_NAME, MAX_DB)
-                if inspect_database(target / DB_NAME) != counts: raise wb.InputError('Copied database differs.')
-                manifest = {'schema': 1, 'app': 'Workfloor', 'app_version': wb.VERSION,
-                            'database': {'name': DB_NAME, 'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest(), 'tables': counts}}
-                fresh_write(target / 'manifest.json', (json.dumps(manifest, indent=2) + '\n').encode('utf-8'))
-                verify(target)
-                return {'status': 'verified', **manifest}
-            finally: con.execute('ROLLBACK')
+        return _backup_owned(source, target)
+
+
+def _backup_owned(source, target):
+    """Internal migration helper: caller must retain data_lock(source)."""
+    source = plain_path(source); target = new_directory(target, source); db = source / DB_NAME
+    ordinary_file(db, MAX_DB); no_sidecars(db)
+    # Probe for active transactions. The server guard is authoritative for v0.3;
+    # an idle older client must still be stopped manually.
+    with closing(sqlite3.connect(db.as_uri() + '?mode=rw', uri=True, timeout=.1, autocommit=True)) as probe:
+        if probe.execute('PRAGMA journal_mode').fetchone()[0] != 'delete': raise wb.InputError('Stop a DELETE-journal Workfloor database before backup.')
+        probe.execute('BEGIN EXCLUSIVE'); probe.execute('ROLLBACK')
+    no_sidecars(db)
+    with closing(sqlite3.connect(db.as_uri() + '?mode=ro', uri=True, timeout=.1, autocommit=True)) as con:
+        con.execute('BEGIN')
+        try:
+            counts = check_database(con)
+            target.mkdir(mode=0o700)
+            # Use SQLite's backup API rather than raw-copying an open source.
+            # One read transaction fixes the snapshot while the guard is held.
+            fresh_write(target / DB_NAME, b'')
+            page_size = con.execute('PRAGMA page_size').fetchone()[0]
+            deadline = time.monotonic() + 15
+            def progress(_status, _remaining, total):
+                if total * page_size > MAX_DB or time.monotonic() > deadline:
+                    raise wb.InputError('Snapshot exceeds the size or time budget.')
+            with closing(sqlite3.connect((target / DB_NAME).as_uri() + '?mode=rw', uri=True, autocommit=True)) as destination:
+                con.backup(destination, pages=256, progress=progress, sleep=.01)
+            data = read_file(target / DB_NAME, MAX_DB)
+            if inspect_database(target / DB_NAME) != counts: raise wb.InputError('Copied database differs.')
+            manifest = {'schema': 1, 'app': 'Workfloor', 'app_version': wb.VERSION,
+                        'database': {'name': DB_NAME, 'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest(), 'tables': counts}}
+            fresh_write(target / 'manifest.json', (json.dumps(manifest, indent=2) + '\n').encode('utf-8'))
+            verify(target)
+            return {'status': 'verified', **manifest}
+        finally: con.execute('ROLLBACK')
 
 def unique_object(pairs):
     value = {}
@@ -126,7 +134,7 @@ def verify(directory):
     item = manifest['database']
     if not isinstance(item, dict) or set(item) != {'name', 'bytes', 'sha256', 'tables'} or item['name'] != DB_NAME or type(item['bytes']) is not int or not 0 < item['bytes'] <= MAX_DB or not isinstance(item['sha256'], str) or not re.fullmatch('[0-9a-f]{64}', item['sha256']):
         raise wb.InputError('Unsupported database manifest fields.')
-    if not isinstance(item['tables'], dict) or set(item['tables']) != set(TABLES) or any(type(n) is not int or n < 0 for n in item['tables'].values()): raise wb.InputError('Invalid table counts.')
+    if not isinstance(item['tables'], dict) or set(item['tables']) not in (set(TABLES_V1), set(TABLES)) or any(type(n) is not int or n < 0 for n in item['tables'].values()): raise wb.InputError('Invalid table counts.')
     data = read_file(root / DB_NAME, MAX_DB)
     if len(data) != item['bytes'] or hashlib.sha256(data).hexdigest() != item['sha256']: raise wb.InputError('Backup checksum or byte length differs.')
     if inspect_database(root / DB_NAME) != item['tables']: raise wb.InputError('Backup table counts differ.')
