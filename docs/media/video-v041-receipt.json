@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "application_version": "0.4.1",
+  "source_revision": "6a7a02ade5b01e1a6fc76f6e87a40ac7d2c24af6",
+  "source_zip_sha256": "3afa8d27afa818b3f8cd91cc2449f0ee7f964aedc2e24843650d8a55987da944",
+  "capture_record_sha256": "807ac1fc78b3c1158c819259962ec4e3089db2439e52a2637acfb316275eb16d",
+  "duration_seconds": 84,
+  "width": 1280,
+  "height": 900,
+  "fps": 25,
+  "audio": false,
+  "capture_verification_url": "https://github.com/TheOutlandsDev/workfloor/actions/runs/40722383756",
+  "poster_sha256": "ba95bb3c13278e399c2dc597d1daab21d937dee5402225af93a5cdd09773070d",
+  "format": "Edited step walkthrough from actual Windows CI UI captures; no continuous screen recording; report header and preview table use documented detail crops",
+  "fixture_note": "Only the first server substitutes a fictional fixed receipt ID and UTC time for repeatability. All API tokens remain random and private. Runtime files are unchanged.",
+  "capture_checks": [
+    "published_release_zip_and_all_members_verified",
+    "fresh_report_has_nine_orders_four_delayed",
+    "three_order_preview_leaves_report_unchanged",
+    "rendered_receipt_text_contrast_checked",
+    "stored_receipt_records_three_orders_two_events_and_input_hash",
+    "receipt_bytes_identical_after_real_process_restart",
+    "receipt_bytes_identical_after_verified_database_restore",
+    "no_browser_javascript_errors"
+  ],
+  "chapters": [
+    {
+      "start_seconds": 0,
+      "end_seconds": 14,
+      "title": "Begin with a known result",
+      "capture": "01-baseline.jpg",
+      "crop_vertical_range": [
+        0,
+        430
+      ],
+      "caption": "The default due-date report starts with invented work orders. No CSV has been imported.",
+      "note": "Check the starting point before changing the dataset."
+    },
+    {
+      "start_seconds": 14,
+      "end_seconds": 28,
+      "title": "Preview before writing",
+      "capture": "02-valid-preview.jpg",
+      "crop_vertical_range": [
+        600,
+        936
+      ],
+      "caption": "Load the included synthetic sample and inspect every row. Preview leaves the report at nine orders.",
+      "note": "All rows must pass. Apply is a separate, explicit action."
+    },
+    {
+      "start_seconds": 28,
+      "end_seconds": 42,
+      "title": "Commit the orders and receipt together",
+      "capture": "03-import-history.jpg",
+      "crop_vertical_range": null,
+      "caption": "Apply adds three orders and two completion events. Their receipt commits in the same SQLite transaction.",
+      "note": "If receipt storage fails, the whole import rolls back."
+    },
+    {
+      "start_seconds": 42,
+      "end_seconds": 56,
+      "title": "Inspect the stored explanation",
+      "capture": "04-receipt.jpg",
+      "crop_vertical_range": null,
+      "caption": "View the saved receipt and download its exact JSON bytes. Raw CSV contents and filenames are not stored.",
+      "note": "The displayed ID and time are fixed fictional capture fixtures."
+    },
+    {
+      "start_seconds": 56,
+      "end_seconds": 70,
+      "title": "Restart the app; reopen the receipt",
+      "capture": "05-after-restart.jpg",
+      "crop_vertical_range": null,
+      "caption": "The original app process stops. A new process opens the same database and downloads the identical receipt.",
+      "note": "The browser download bytes match the first download exactly."
+    },
+    {
+      "start_seconds": 70,
+      "end_seconds": 84,
+      "title": "Restore into a fresh directory",
+      "capture": "06-after-restore.jpg",
+      "crop_vertical_range": null,
+      "caption": "Stop the app, back up, verify and restore with the CLI. Reopen the new copy and download the receipt again.",
+      "note": "This is local history, not a signed audit log or a power-loss guarantee."
+    }
+  ],
+  "bytes": 983390,
+  "sha256": "a797c258a11c7d48c5e62dc60b61a59483905177694de948b5bcbcb43e1e3bee",
+  "captions_sha256": "576d2163106d3130ec00771745dc1dd83d123d16c72c57a11522eae063def3d1",
+  "frames": {
+    "01.png": "69a662374141d4a2bb9a1f3e6c8dbba31e8cee282f80f284469b295b81f18ac8",
+    "02.png": "b88ea6a8bb9c0b81bcd879f39c383f40f534edcd7e19d8561d364ae3841f5f6a",
+    "03.png": "336582dd6043229ea1f91eb9af0a1feb1c37aa2431f68c3615705e1f71ab04c0",
+    "04.png": "a563991fbbdfefad2322817739161a611ce1dedd4e0eaa53bfaedefd8fdef27d",
+    "05.png": "1be2720391483c998bb46ec0f97e526244d9f2d6a4887a82d236a44928c35a57",
+    "06.png": "6b19df50b90f7ed765ea137777284e8aca85f64778533c7724e60757c1df05ad"
+  },
+  "validation": [
+    "capture_hashes_match",
+    "caption_bounds_fit",
+    "six_chapters_cover_84_seconds",
+    "complete_video_decode"
+  ]
+}

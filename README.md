@@ -10,9 +10,15 @@ Built with Python's standard library, SQLite, and plain HTML/CSS/JavaScript. No 
 
 The browser sample uses actual frozen exports from the tested application. Filter orders, inspect source evidence and recorded SQL, compare before/after, or download a report. It is read-only: SQL execution, CSV imports and saving snapshots require the local Python application. See [sample provenance and scope](docs/BROWSER-DEMO.md).
 
-[Watch the 80-second walkthrough](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/#workfloor-walkthrough) · [MP4](docs/media/workfloor-walkthrough.mp4) · [Transcript and capture notes](docs/WALKTHROUGH.md). Captioned steps from actual application captures, using synthetic data; edited timing and no audio.
+[Watch the current 84-second import-history tour](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/#workfloor-v04-walkthrough) · [MP4](https://github.com/TheOutlandsDev/workfloor/blob/main/docs/media/workfloor-v041-walkthrough.mp4) · [Captions](https://github.com/TheOutlandsDev/workfloor/blob/main/docs/media/workfloor-v041-walkthrough.vtt) · [Transcript, capture disclosure and reproduction](https://github.com/TheOutlandsDev/workfloor/blob/main/docs/DEMO-v0.4.1.md).
 
-![v0.2: three valid invented orders previewed before import](docs/screenshots/import-valid-preview.jpg)
+Actual v0.4.1 UI captures show CSV preview, persistent receipts, a real app-process restart and a verified database restore. Receipt downloads match at each checkpoint. Edited steps, no audio; fixed fictional receipt ID/time for repeatable captures. No runtime files or styles were changed for capture.
+
+[Earlier v0.1 reporting tour - 80 seconds](https://connor-oshea-outlands.thatrobotguy.chatgpt.site/#workfloor-walkthrough) · [MP4](docs/media/workfloor-walkthrough.mp4) · [Transcript and capture notes](docs/WALKTHROUGH.md). Captioned steps from actual application captures, using synthetic data; edited timing and no audio.
+
+![Current v0.4.1: three valid invented orders previewed before import](https://raw.githubusercontent.com/TheOutlandsDev/workfloor/main/docs/media/v0.4.1-captures/02-valid-preview.jpg)
+
+![Current v0.4.1: persistent import history with a stored receipt](https://raw.githubusercontent.com/TheOutlandsDev/workfloor/main/docs/media/v0.4.1-captures/03-import-history.jpg)
 
 ## Start here
 

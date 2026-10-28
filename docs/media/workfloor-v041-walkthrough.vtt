@@ -1,0 +1,31 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:14.000
+Begin with a known result
+The default due-date report starts with invented work orders. No CSV has been imported.
+Check the starting point before changing the dataset.
+
+00:00:14.000 --> 00:00:28.000
+Preview before writing
+Load the included synthetic sample and inspect every row. Preview leaves the report at nine orders.
+All rows must pass. Apply is a separate, explicit action.
+
+00:00:28.000 --> 00:00:42.000
+Commit the orders and receipt together
+Apply adds three orders and two completion events. Their receipt commits in the same SQLite transaction.
+If receipt storage fails, the whole import rolls back.
+
+00:00:42.000 --> 00:00:56.000
+Inspect the stored explanation
+View the saved receipt and download its exact JSON bytes. Raw CSV contents and filenames are not stored.
+The displayed ID and time are fixed fictional capture fixtures.
+
+00:00:56.000 --> 00:01:10.000
+Restart the app; reopen the receipt
+The original app process stops. A new process opens the same database and downloads the identical receipt.
+The browser download bytes match the first download exactly.
+
+00:01:10.000 --> 00:01:24.000
+Restore into a fresh directory
+Stop the app, back up, verify and restore with the CLI. Reopen the new copy and download the receipt again.
+This is local history, not a signed audit log or a power-loss guarantee.
